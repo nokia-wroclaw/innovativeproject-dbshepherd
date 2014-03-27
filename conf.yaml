@@ -1,0 +1,30 @@
+ serverAlias1:
+  connection:
+   adress: localhost
+   type: ssh
+   ssh: 
+    user: kax
+    rsa: jhbdasjih
+  pgBase1: 
+   user: Miniok
+   passwd: risercz_wymagany
+
+ testServer:
+  connection:
+   adress: localhost
+   type: tcp
+  pgBase1:
+   name: dbtest
+   user: postgres
+   passwd: root
+
+ testServer2:
+  connection:
+   adress: 127.0.0.1
+   type: tcp
+  pgBase1:
+   name: nsnbase
+   user: sebastian
+   passwd: root
+
+
