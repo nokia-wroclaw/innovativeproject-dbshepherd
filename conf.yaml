@@ -23,9 +23,9 @@
    adress: 127.0.0.1
    type: tcp
   pgBase1:
-   name: nsnbase
-   user: sebastian
-   passwd: root
+   name: dbshepherd_local
+   user: dbshepherd
+   passwd: dbshepherd
 
  blood:
   connection:
