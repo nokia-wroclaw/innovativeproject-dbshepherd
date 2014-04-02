@@ -1,3 +1,4 @@
+from prettytable import from_db_cursor
 from dbmodules import m_core
 
 
@@ -29,52 +30,14 @@ class Postgres(m_core.ModuleCore):
                     conn = psycopg2.connect(dbname=db_name,user=usr,host=adr,password=pwd, port=1234)
                     cur = conn.cursor()
                     cur.execute(values[2])
-                    columns = [desc[0] for desc in cur.description]
 
-                    rows = cur.fetchall();
-
-                    print()
-
-                    print('+', end='')
-                    for column in columns:
-                        for i in range(0, len(column.ljust(15, ' '))):
-                            print("-", end='')
-                        print('+', end='')
-                    print()
-
-                    print('|', end='')
-                    for column in columns:
-                        print(column.ljust(15, ' '), end='')
-                        print('|', end='')
-
-                    print('\n|', end='')
-                    for column in columns:
-                        for i in range(0, len(column.ljust(15, ' '))):
-                            print("-", end='')
-                        print('|', end='')
-                    print()
-
-                    for row in rows:
-                        for cell in row:
-                            print('|', end='')
-                            print(str(cell).ljust(15, ' '), end='')
-                        print('|', end='')
-                        print()
-
-                    print('+', end='')
-                    for column in columns:
-                        for i in range(0, len(column.ljust(15, ' '))):
-                            print("-", end='')
-                        print('+', end='')
-                    print()
-
-
-                    print()
+                    pt = from_db_cursor(cur)
+                    print(pt)
 
                 except psycopg2.Error as e:
-                    print(e)
+                    print("error: ", e)
                 except psycopg2.Warning as w:
-                    print(w)
+                    print("error: ", w)
 
             except alias.AliasError as e:
                 print(e)

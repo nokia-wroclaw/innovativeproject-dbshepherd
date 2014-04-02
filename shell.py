@@ -1,7 +1,10 @@
 import cmd
 import sys
+import alias
+from tunel import TunnelManager
 sys.path.append("dbmodules")
 
+manager = TunnelManager()
 
 def set_module(module):
     try:
@@ -22,6 +25,14 @@ class Shell(cmd.Cmd):
     def do_module(self, module):
         set_module(module)
 
+    def do_connect(self,server):
+        """Connecting via ssh"""
+        manager.connectToAlias(server)
+    def do_listConnections(self,server):
+        """list ssh connections"""
+        for connection in manager.lista:
+            print (connection)
+
     def do_EOF(self, line):
         return True
 
@@ -29,4 +40,8 @@ class Shell(cmd.Cmd):
         return False
 
 # if __name__ == '__main__':
-Shell().cmdloop()
+try:
+    Shell().cmdloop()
+except KeyboardInterrupt:
+    print("")
+    pass
