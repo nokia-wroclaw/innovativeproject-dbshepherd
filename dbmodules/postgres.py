@@ -35,9 +35,9 @@ class Postgres(m_core.ModuleCore):
                     print(pt)
 
                 except psycopg2.Error as e:
-                    print("error: ", e)
+                    print("Error: ", e)
                 except psycopg2.Warning as w:
-                    print("error: ", w)
+                    print("Error: ", w)
 
             except alias.AliasError as e:
                 print(e)

@@ -9,7 +9,7 @@ manager = TunnelManager()
 def set_module(module):
     try:
 	    exec("get_module('{0}').{1}('{1}').cmdloop()".format(module.lower(), module))
-    except:
+    except (ImportError, ImportWarning):
         print("Nie można wczytać modułu:", module)
 
 
@@ -28,6 +28,7 @@ class Shell(cmd.Cmd):
     def do_connect(self,server):
         """Connecting via ssh"""
         manager.connectToAlias(server)
+
     def do_listConnections(self,server):
         """list ssh connections"""
         for connection in manager.lista:
