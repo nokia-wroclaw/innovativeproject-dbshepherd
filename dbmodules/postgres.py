@@ -1,8 +1,8 @@
-from prettytable import from_db_cursor
-from dbmodules import m_core
-
-
 import sys
+
+from prettytable import from_db_cursor
+
+import m_core
 
 sys.path.append("..")
 
@@ -16,7 +16,9 @@ class Postgres(m_core.ModuleCore):
 
     def do_query(self, args):
         try:
-            values = self.parse_args(args, 3)
+            v = self.parse_args(args, 3)
+            values = v[0]
+            print(v[1])
             #values = self.parse_args('conf.yaml testServer2.pgBase1 "SELECT * FROM shepherd2"', 3)
 
             try:
@@ -35,9 +37,13 @@ class Postgres(m_core.ModuleCore):
                     print(pt)
 
                 except psycopg2.Error as e:
-                    print("Error: ", e)
+                    print('Error: ', e)
                 except psycopg2.Warning as w:
-                    print("Error: ", w)
+                    print('Warning: ', w)
+                except psycopg2.InterfaceError as e:
+                    print('Error: ', e)
+                except psycopg2.DatabaseError as e:
+                    print('Error: ', e)
 
             except alias.AliasError as e:
                 print(e)

@@ -10,13 +10,14 @@ class ModuleCore(cmd.Cmd):
     def set_name(self, name):
         self.prompt = "[" + name + "]>"
 
-    def parse_args(self, string="", n=0):
+    def parse_args(self, string="", n=0, m=0):
         list = re.findall('"+.*"+|[a-zA-Z0-9!@#$%^&*()_+-,./<>?]+', string)
-        if len(list) == n or n == 0:
+        arg_counter = len(list);
+        if (arg_counter >= n and arg_counter <= m) or (arg_counter == n and m == 0) or n == 0:
             r_list = []
             for l in list:
                 r_list.append(l.replace('"', ''))
-            return r_list
+            return (r_list, len(list))
         else:
             raise ParseArgsException("Nieodpowiednia ilość argumentów")
 

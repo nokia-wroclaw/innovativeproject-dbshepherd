@@ -1,9 +1,9 @@
 from shutil import copyfile
 
-from dbmodules import m_core
+import m_core
 
 
-class Test_mod(m_core.ModuleCore):
+class Test_Mod(m_core.ModuleCore):
     def __init__(self,completekey='tab', stdin=None, stdout=None):
         super().__init__()
         self.set_name('Test_mod')
