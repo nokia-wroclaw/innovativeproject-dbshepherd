@@ -16,17 +16,16 @@ class Postgres(m_core.ModuleCore):
 
     def do_query(self, args):
         try:
-            v = self.parse_args(args, 3)
-            values = v[0]
-            print(v[1])
-            #values = self.parse_args('conf.yaml testServer2.pgBase1 "SELECT * FROM shepherd2"', 3)
+            (values,X) = self.parse_args(args, 3)
+            [server_name, base_name] = values[1].split('.')
+            file_name = values[0]
 
             try:
-                ali = alias.Alias(values[0])
-                adr = ali.show(values[1].split('.')[0])["connection"]["adress"]
-                pwd = ali.show(values[1].split('.')[0])[values[1].split('.')[1]]["passwd"]
-                usr = ali.show(values[1].split('.')[0])[values[1].split('.')[1]]["user"]
-                db_name = ali.show(values[1].split('.')[0])[values[1].split('.')[1]]["name"]
+                ali = alias.Alias(file_name)
+                adr = ali.show(server_name)["connection"]["adress"]
+                pwd = ali.show(server_name)[base_name]["passwd"]
+                usr = ali.show(server_name)[base_name]["user"]
+                db_name = ali.show(server_name)[base_name]["name"]
 
                 try:
                     conn = psycopg2.connect(dbname=db_name,user=usr,host=adr,password=pwd, port=1234)
@@ -52,5 +51,7 @@ class Postgres(m_core.ModuleCore):
 
 
         except m_core.ParseArgsException as e:
+            print(e)
+        except Exception as e:
             print(e)
 
