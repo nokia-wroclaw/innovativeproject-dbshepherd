@@ -21,11 +21,11 @@ class Postgres(m_core.ModuleCore):
             file_name = values[0]
 
             try:
-                ali = alias.Alias(file_name)
-                adr = ali.show(server_name)["connection"]["adress"]
-                pwd = ali.show(server_name)[base_name]["passwd"]
-                usr = ali.show(server_name)[base_name]["user"]
-                db_name = ali.show(server_name)[base_name]["name"]
+                conf = alias.Alias(file_name).show(server_name)
+                adr = conf["connection"]["adress"]
+                pwd = conf[base_name]["passwd"]
+                usr = conf[base_name]["user"]
+                db_name = conf[base_name]["name"]
 
                 try:
                     conn = psycopg2.connect(dbname=db_name,user=usr,host=adr,password=pwd, port=1234)
