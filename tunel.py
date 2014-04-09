@@ -4,13 +4,11 @@ import sys
 import threading
 import configmanager
 from forward import forward_tunnel
-
+from socket import error  #sock 10060
 
 class TunnelManagerException(Exception):
 	def __init__(self, msg):
 		self.msg = msg
-
-
 
 def forward(local_port, host, user, passwd, remote_port, ssh):
 	client = paramiko.SSHClient()
@@ -29,6 +27,8 @@ def forward(local_port, host, user, passwd, remote_port, ssh):
 		raise TunnelManagerException("ConnectionRefusedError")
 	except paramiko.ssh_exception.AuthenticationException as e:
 		raise TunnelManagerException(e)
+	except error as e: #sock 10060
+		raise TunnelManagerException("Timeout")
 	except Exception as e:
 		raise TunnelManagerException(e)
 	except:
@@ -50,7 +50,7 @@ class Tunnel(threading.Thread):
 		try:
 			forward(self.local, self.host, self.user, self.passwd, self.remote, self.ssh_port)
 		except TunnelManagerException as e:
-			print (e)
+			print ("Unable to create tunnel (", self.host, ") reason:", e)
 			self.status = "bad"
 
 class TunnelManager():
@@ -78,5 +78,3 @@ class TunnelManager():
 			if(tunnel.status == "bad"):
 				print ("trying to del", tunnel.name)
 				del self.lista[self.lista.index(tunnel)]
-
-# #ThreadMan.connect(1234,'antivps.pl','dbshepherd','dbshepherd',443,22)
