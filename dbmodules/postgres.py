@@ -6,7 +6,7 @@ import m_core
 
 sys.path.append("..")
 
-import alias
+import configmanager
 import psycopg2
 
 class Postgres(m_core.ModuleCore):
@@ -21,7 +21,7 @@ class Postgres(m_core.ModuleCore):
             file_name = values[0]
 
             try:
-                conf = alias.Alias(file_name).show(server_name)
+                conf = configmanager.ConfigManager(file_name).show(server_name)
                 adr = conf["connection"]["adress"]
                 pwd = conf[base_name]["passwd"]
                 usr = conf[base_name]["user"]
@@ -44,7 +44,7 @@ class Postgres(m_core.ModuleCore):
                 except psycopg2.DatabaseError as e:
                     print('Error: ', e)
 
-            except alias.AliasError as e:
+            except configmanager.ConfigManagerError as e:
                 print(e)
             except Exception as e:
                 print(e)

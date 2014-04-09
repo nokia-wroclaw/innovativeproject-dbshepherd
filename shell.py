@@ -3,7 +3,7 @@ import glob
 from imp import find_module
 import os
 import sys
-import alias
+import configmanager
 from tunel import TunnelManager
 
 sys.path.append("dbmodules")

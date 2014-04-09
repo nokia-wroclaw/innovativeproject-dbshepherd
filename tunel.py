@@ -2,7 +2,7 @@ import paramiko
 import time
 import sys
 import threading
-import alias
+import configmanager
 from forward import forward_tunnel
 
 
@@ -64,7 +64,7 @@ class TunnelManager():
 		except TunnelManagerException as e:
 			raise TunnelManagerException(e)
 	def connectToAlias(self, server_alias):
-		yaml = alias.Alias("conf.yaml")
+		yaml = configmanager.ConfigManager("conf.yaml")
 		connection = yaml.show(server_alias)['connection']
 		try:
 			passwd = connection['passwd']

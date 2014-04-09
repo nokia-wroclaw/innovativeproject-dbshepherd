@@ -1,12 +1,12 @@
 import yaml
 #najpierw & później * !!
 
-class Alias:
+class ConfigManager:
     def __init__(self, path):
         try:
             self.yamlfile = open(path,'r')
         except FileNotFoundError:
-            raise AliasError("No file under this path")
+            raise ConfigManagerError("No file under this path")
         self.loader = yaml.load(self.yamlfile)
 
     def show(self, what):
@@ -14,8 +14,8 @@ class Alias:
             return self.loader[what]
         except KeyError:
             err = what + " is not present in yaml file"
-            raise AliasError(err)
+            raise ConfigManagerError(err)
 
-class AliasError(Exception):
+class ConfigManagerError(Exception):
     def __init__(self, value):
         self.value = value
