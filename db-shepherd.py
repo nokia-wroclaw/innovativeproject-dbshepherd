@@ -19,6 +19,8 @@ def set_module(module):
             exec("get_module('{0}').{1}('{1}').cmdloop()".format(module.lower(), module))
         else:
             print("Musisz podać nazwę modułu!")
+    except ImportError as e:
+        print(e)
     except:
         print("Nie można wczytać modułu:", module)
 

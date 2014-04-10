@@ -22,7 +22,10 @@ def forward(local_port, host, user, passwd, remote_port, ssh, key):
 		if(key==""):
 			client.connect(host,username=user, password=passwd,port=ssh)
 		else:
-			mykey = paramiko.RSAKey.from_private_key(key)
+			try:
+				mykey = paramiko.RSAKey.from_private_key_file(key,"qwerty12")
+			except paramiko.PasswordRequiredException:
+				raise TunnelManagerException("Encrypted key, no password")
 			client.connect(host,username=user, port=ssh, pkey=mykey)
 		print ('connected')
 		try:
@@ -32,6 +35,8 @@ def forward(local_port, host, user, passwd, remote_port, ssh, key):
 	except ConnectionRefusedError:
 		raise TunnelManagerException("ConnectionRefusedError")
 	except paramiko.ssh_exception.AuthenticationException as e:
+	 	raise TunnelManagerException(e)
+	except paramiko.ssh_exception.SSHException as e:
 		raise TunnelManagerException(e)
 	except error as e: #sock 10060 timeout, 10013 socket juz zajety
 		raise TunnelManagerException(e.errno)
