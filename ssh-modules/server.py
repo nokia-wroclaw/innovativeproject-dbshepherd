@@ -31,11 +31,11 @@ class Server(threading.Thread):
 
             for s in ready[0]:
                 if s == self.server:
-                    self.server.accept()
-                    print("test")
-                    # handle the server socket
-                    connection = self.server.accept();
+                    print("connection")
+                    connection = self.server.accept()
+                    print("create")
                     c = client.Client(connection[0], connection[1])
+                    print("start")
                     c.start();
         self.server.close()
         for c in self.threads:
