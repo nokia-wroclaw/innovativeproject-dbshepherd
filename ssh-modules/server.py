@@ -1,73 +1,47 @@
 import select
 import socket
-import sys
 import threading
+import client
 
-class Server:
+class Server(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
         self.host = ''
-        self.port = 50000
-        self.backlog = 5
-        self.size = 1024
+        self.port = 13931
+        # self.backlog = 5
+        # self.size = 1024
         self.server = None
         self.threads = []
 
     def open_socket(self):
         try:
             self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.server.bind((self.host, self.port))
+            self.server.bind((self.host,self.port))
             self.server.listen(5)
+
         except socket.error as e:
-            if self.server:
-                self.server.close()
-            print
-            "Could not open socket: " + e;
-            sys.exit(1)
+            print(e)
 
     def run(self):
         self.open_socket()
-        input = [self.server, sys.stdin]
+
         running = 1
         while running:
-            inputready, outputready, exceptready = select.select(input, [], [])
+            ready = select.select([self.server], [self.server], [self.server], 1)
 
-            for s in inputready:
-
+            for s in ready[0]:
                 if s == self.server:
+                    self.server.accept()
+                    print("test")
                     # handle the server socket
-                    c = Client(self.server.accept())
-                    c.start()
-                    self.threads.append(c)
-
-                elif s == sys.stdin:
-                    # handle standard input
-                    junk = sys.stdin.readline()
-                    running = 0
-
-                    # close all threads
-
+                    connection = self.server.accept();
+                    c = client.Client(connection[0], connection[1])
+                    c.start();
         self.server.close()
         for c in self.threads:
             c.join()
 
 
-class Client(threading.Thread):
-    def __init__(self, client, address):
-        threading.Thread.__init__(self)
-        self.client = client
-        self.address = address
-        self.size = 1024
+s = Server();
+s.start();
 
-    def run(self):
-        running = 1
-        while running:
-            data = self.client.recv(self.size)
-            if data:
-                self.client.send(data)
-            else:
-                self.client.close()
-                running = 0
-
-
-s = Server()
-s.run()
