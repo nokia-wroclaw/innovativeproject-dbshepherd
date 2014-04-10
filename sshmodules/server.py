@@ -8,8 +8,6 @@ class Server(threading.Thread):
         threading.Thread.__init__(self)
         self.host = ''
         self.port = 13931
-        # self.backlog = 5
-        # self.size = 1024
         self.server = None
         self.threads = []
 

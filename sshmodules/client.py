@@ -16,5 +16,8 @@ class Client(threading.Thread):
                 data = self.client.recv(self.size)
                 if data:
                     print("D: ",data.decode("utf-8"))
+                    str = "może sie udalo"
+                    print(str)
+                    self.client.send(str.encode("utf-8"))
         except ConnectionResetError as e:
             print("Połączenie z clientem zostało przerwane");

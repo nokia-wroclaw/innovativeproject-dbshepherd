@@ -38,7 +38,11 @@ def is_exist(module):
 class Shell(cmd.Cmd):
     def __init__(self):
         super().__init__()
-        self.conn = connection.Connection()
+        try:
+            self.conn = connection.Connection()
+            self.conn.start()
+        except ConnectionRefusedError:
+            print("Nie można połączyć się z ssh-shepherd, tunele będą tworzone lokalnie.")
 
     prompt = "#>"
     modules = []
@@ -64,8 +68,12 @@ class Shell(cmd.Cmd):
 
     def do_connect(self, arg):
         """Connecting via ssh"""
-        # manager.connectToAlias(server)
         self.conn.send(arg)
+        t = None
+        while t == None:
+            t = self.conn.get_state()
+        print(t)
+
 
     def do_localConnect(self, arg):
         """Connecting via ssh"""
