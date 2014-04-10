@@ -11,7 +11,10 @@ class Client(threading.Thread):
     def run(self):
         running = 1
         print("run_cli")
-        while running:
-            data = self.client.recv(self.size)
-            if data:
-                print(data.decode("utf-8"))
+        try:
+            while running:
+                data = self.client.recv(self.size)
+                if data:
+                    print("D: ",data.decode("utf-8"))
+        except ConnectionResetError as e:
+            print("Połączenie z clientem zostało przerwane");
