@@ -3,9 +3,11 @@ import time
 import sys
 import threading
 import configmanager
-from forward import forward_tunnel
 from socket import error  #sock 10060
 import errno
+from sshmodules.tunnel import forward_tunnel
+
+
 class TunnelManagerException(Exception):
 	def __init__(self, msg):
 		self.msg = msg

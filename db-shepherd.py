@@ -3,8 +3,10 @@ import glob
 from imp import find_module
 import os
 import sys
+import connection
 import configmanager
-from tunel import TunnelManager
+
+from sshmodules.tunnelmanager import TunnelManager
 
 sys.path.append("dbmodules")
 
@@ -34,6 +36,10 @@ def is_exist(module):
 
 
 class Shell(cmd.Cmd):
+    def __init__(self):
+        super().__init__()
+        self.conn = connection.Connection()
+
     prompt = "#>"
     modules = []
 
@@ -56,9 +62,14 @@ class Shell(cmd.Cmd):
             completions = [f for f in self.modules if f.startswith(text)]
         return completions
 
-    def do_connect(self, server):
+    def do_connect(self, arg):
         """Connecting via ssh"""
-        manager.connectToAlias(server)
+        # manager.connectToAlias(server)
+        self.conn.send(arg)
+
+    def do_localConnect(self, arg):
+        """Connecting via ssh"""
+        manager.connectToAlias(arg)
 
     def do_listConnections(self, server):
         """list ssh connections"""
