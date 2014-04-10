@@ -29,19 +29,19 @@
 
  blood:
   connection:
-   adress: play.bloodfrontier.net
+   adress: shell.cjb.net
    type: ssh
-   sshport: 666
+   sshport: 22
    localport: 1234
-   remoteport: 5432
-   user: root
+   remoteport: 443
+   user: qwer
 
  nsn:
   connection:
    adress: antivps.pl
    type: ssh
    sshport: 22
-   localport: 1234
+   localport: 13931
    remoteport: 5432
    user: dbshepherd
    pass: dbshepherd
