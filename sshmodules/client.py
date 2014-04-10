@@ -29,4 +29,6 @@ class Client(threading.Thread):
                     self.client.send(ret.encode("utf-8"))
 
         except ConnectionResetError as e:
+            for tunnel in self.t_manager.lista:
+                tunnel._stop()
             print("Połączenie z clientem zostało przerwane");

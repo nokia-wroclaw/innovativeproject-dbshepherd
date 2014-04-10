@@ -1,6 +1,9 @@
 import paramiko
 import time
 import sys
+
+sys.path.append("..")
+
 import threading
 import configmanager
 from socket import error  #sock 10060
