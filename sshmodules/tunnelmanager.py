@@ -98,6 +98,6 @@ class TunnelManager():
 	def clean(self):
 		for tunnel in self.lista:
 			#print (tunnel)
-			if(tunnel.status == "bad" || (tunnel.status == "unknown" ):
+			if(tunnel.status == "bad" or tunnel.status == "unknown" ):
 				print ("trying to del", tunnel.name)
 				del self.lista[self.lista.index(tunnel)]
