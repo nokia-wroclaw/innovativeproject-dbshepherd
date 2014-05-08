@@ -72,12 +72,13 @@ class Tunnel(threading.Thread):
 class TunnelManager():
 	def __init__(self):
 		self.lista =[]
-
+		self.local_port = 1234
 	def connect(self,local_port, host, user, passwd, remote_port, ssh_port, keypath=""):
 		try:
-			w = Tunnel(local_port, host, user, passwd, remote_port, ssh_port, keypath)
+			w = Tunnel(self.local_port, host, user, passwd, remote_port, ssh_port, keypath)
 			index = len(self.lista)
 			self.lista.append(w)
+			self.local_port += 1
 			w.start()
 			return index
 		except TunnelManagerException as e:
@@ -97,6 +98,6 @@ class TunnelManager():
 	def clean(self):
 		for tunnel in self.lista:
 			#print (tunnel)
-			if(tunnel.status == "bad"):
+			if(tunnel.status == "bad" || (tunnel.status == "unknown" ):
 				print ("trying to del", tunnel.name)
 				del self.lista[self.lista.index(tunnel)]

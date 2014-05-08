@@ -36,16 +36,9 @@ def is_exist(module):
         return True
     except ImportError:
         return False
-        
-def connectToList(listFile):
-    conf = configmanager.ConfigManager(listFile)
-    print (conf.loader)
-    server_list = []
-    for server in conf.loader:
-        server_list.append(server)
 
-    for server in server_list:
-        print("Connecting to" , conf.show(server))
+
+
 
 class Shell(cmd.Cmd):
     def __init__(self):
@@ -90,7 +83,7 @@ class Shell(cmd.Cmd):
         for lista in list_of_lists:
             path = lista + ".yaml"
             try:
-                connectToList(path)
+                self.connectToList(path)
             except configmanager.ConfigManagerError as e:
                 print (e)
 
@@ -109,6 +102,31 @@ class Shell(cmd.Cmd):
 
     def emptyline(self):
         return False
+
+    def connectToList(self, listFile):
+        conf = configmanager.ConfigManager(listFile)
+        
+        server_list = []
+        for server in conf.loader:
+            server_list.append(server)
+
+        connection_list ={}
+        for server in server_list:
+            connection =  conf.show(server)["connection"]
+            #Poprawić cmd
+            # adres_user_password_sshport_remoteport
+            command = connection["adress"] + "_" + connection["user"]+ "_" + \
+                    connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"])
+
+            self.conn.send(command)
+            t = None
+            while t == None:
+              t = self.conn.get_state()
+            #status_adres_localport
+            server_status = t.split("_")
+            connection_list[server_status[1]]=server_status[2]
+            print("Connecting to" , connection["adress"], "[", server_status[0], "]")
+        print(connection_list)
 
 # if __name__ == '__main__':
 try:

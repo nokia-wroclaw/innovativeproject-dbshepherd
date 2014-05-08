@@ -9,7 +9,7 @@ class Client(threading.Thread):
         self.client = client
         self.address = address
         self.size = 1024
-
+#adres_user_password_sshport_remoteport
     def run(self):
         running = 1
         print("run_cli")
@@ -18,21 +18,27 @@ class Client(threading.Thread):
                 data = self.client.recv(self.size)
                 if data:
                     cmd = data.decode("utf-8").split("_")
-                    ret = "może sie udalo"
-                    print("D: ",cmd)
                     try:
-                        tunnel_index = self.t_manager.connect(1234, cmd[0], "dbshepherd", "dbshepherd", int(cmd[1]),22) #, keypath="")
+                        adr = cmd[0]
+                        usr = cmd[1]
+                        passwd = cmd[2]
+                        ssh = cmd[3]
+                        remote = cmd[4]
+
+                        tunnel_index = self.t_manager.connect(1234, adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
+                        tunnel = self.t_manager.lista[tunnel_index]
                         for num in range(0,15):
                             sleep(1)
                             #print(self.t_manager.lista[tunnel_index].status)
-                            if self.t_manager.lista[tunnel_index].status == "ok":
+                            if tunnel.status == "ok":
                                 break
-                            if self.t_manager.lista[tunnel_index].status == "bad":
+                            if tunnel.status == "bad":
                                 break
-                        ret = self.t_manager.lista[tunnel_index].status     
+                        
+                        ret =  tunnel.status + "_" + tunnel.name + "_" + str(tunnel.local)
                     except IndexError:
                         ret = "Za malo argumentow."
-
+                    print("D: ",cmd)
                     print(ret)
                     self.client.send(ret.encode("utf-8"))
 
