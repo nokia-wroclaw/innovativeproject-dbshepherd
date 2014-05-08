@@ -1,7 +1,7 @@
 import select
 import socket
 import threading
-import client
+import sshmodules.client
 
 class Server(threading.Thread):
     def __init__(self):
