@@ -75,12 +75,16 @@ class TunnelManager():
 		self.local_port = 1234
 	def connect(self,local_port, host, user, passwd, remote_port, ssh_port, keypath=""):
 		try:
-			w = Tunnel(self.local_port, host, user, passwd, remote_port, ssh_port, keypath)
+			for tunnel in self.lista:
+				if tunnel.host == host:
+					return tunnel
 			index = len(self.lista)
+
+			w = Tunnel(self.local_port, host, user, passwd, remote_port, ssh_port, keypath)
 			self.lista.append(w)
 			self.local_port += 1
 			w.start()
-			return index
+			return self.lista[index]
 		except TunnelManagerException as e:
 			raise TunnelManagerException(e)
 	def connectToAlias(self, args):
@@ -94,7 +98,13 @@ class TunnelManager():
 			self.connect(connection['localport'],connection['adress'],connection['user'],"",connection['remoteport'],connection['sshport'],args.split()[1])
 		except IndexError:
 			self.connect(connection['localport'],connection['adress'],connection['user'],passwd,connection['remoteport'],connection['sshport'])
-
+	
+	def isAlive(self, host_name):
+		for server in self.lista:
+			if server.host == host_name:
+				return True
+		return False
+	
 	def clean(self):
 		for tunnel in self.lista:
 			#print (tunnel)

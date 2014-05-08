@@ -25,8 +25,7 @@ class Client(threading.Thread):
                         ssh = cmd[3]
                         remote = cmd[4]
 
-                        tunnel_index = self.t_manager.connect(1234, adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
-                        tunnel = self.t_manager.lista[tunnel_index]
+                        tunnel = self.t_manager.connect(1234, adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
                         for num in range(0,15):
                             sleep(1)
                             #print(self.t_manager.lista[tunnel_index].status)
@@ -35,7 +34,7 @@ class Client(threading.Thread):
                             if tunnel.status == "bad":
                                 break
                         
-                        ret =  tunnel.status + "_" + tunnel.name + "_" + str(tunnel.local)
+                        ret =  tunnel.status + "_" + tunnel.host + "_" + str(tunnel.local)
                     except IndexError:
                         ret = "Za malo argumentow."
                     print("D: ",cmd)
