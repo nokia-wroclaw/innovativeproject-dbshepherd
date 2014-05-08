@@ -11,6 +11,11 @@ from sshmodules.tunnelmanager import TunnelManager
 # sys.path.append("dbmodules")
 
 manager = TunnelManager()
+try:
+    conn = connection.Connection()
+    conn.start()
+except ConnectionRefusedError:
+    print("Nie można połączyć się z ssh-shepherd, tunele będą tworzone lokalnie.")
 
 
 def set_module(module):
@@ -43,11 +48,6 @@ def is_exist(module):
 class Shell(cmd.Cmd):
     def __init__(self):
         super().__init__()
-        try:
-            self.conn = connection.Connection()
-            self.conn.start()
-        except ConnectionRefusedError:
-            print("Nie można połączyć się z ssh-shepherd, tunele będą tworzone lokalnie.")
 
     prompt = "#>"
     modules = []
@@ -73,10 +73,10 @@ class Shell(cmd.Cmd):
 
     def do_connect(self, arg):
         """Connecting via ssh"""
-        self.conn.send(arg)
+        conn.send(arg)
         t = None
         while t == None:
-            t = self.conn.get_state()
+            t = conn.get_state()
         print(t)
     def do_connectToList(self,arg):
         list_of_lists = arg.split(" ")
@@ -118,10 +118,10 @@ class Shell(cmd.Cmd):
             command = connection["adress"] + "_" + connection["user"]+ "_" + \
                     connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"])
 
-            self.conn.send(command)
+            conn.send(command)
             t = None
             while t == None:
-              t = self.conn.get_state()
+              t = conn.get_state()
             #status_adres_localport
             server_status = t.split("_")
             connection_list[server_status[1]]=server_status[2]
