@@ -31,6 +31,7 @@ def forward(local_port, host, user, passwd, remote_port, ssh, key):
 				raise TunnelManagerException("Encrypted key, no password")
 			client.connect(host,username=user, port=ssh, pkey=mykey)
 		print ('connected')
+		return "ok"
 		try:
 			forward_tunnel(local_port, '127.0.0.1', remote_port, client.get_transport())
 		except SystemExit:
@@ -60,10 +61,10 @@ class Tunnel(threading.Thread):
 		self.remote = remote_port
 		self.ssh_port = ssh_port
 		self.keypath = keypath
-		self.status = "ok"
+		self.status = "unknown"
 	def run(self):
 		try:
-			forward(self.local, self.host, self.user, self.passwd, self.remote, self.ssh_port, self.keypath)
+			self.status = forward(self.local, self.host, self.user, self.passwd, self.remote, self.ssh_port, self.keypath)
 		except TunnelManagerException as e:
 			print ("Unable to create tunnel (", self.host, ") reason:", e)
 			self.status = "bad"
@@ -75,8 +76,10 @@ class TunnelManager():
 	def connect(self,local_port, host, user, passwd, remote_port, ssh_port, keypath=""):
 		try:
 			w = Tunnel(local_port, host, user, passwd, remote_port, ssh_port, keypath)
+			index = len(self.lista)
 			self.lista.append(w)
 			w.start()
+			return index
 		except TunnelManagerException as e:
 			raise TunnelManagerException(e)
 	def connectToAlias(self, args):

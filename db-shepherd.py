@@ -36,7 +36,16 @@ def is_exist(module):
         return True
     except ImportError:
         return False
+        
+def connectToList(listFile):
+    conf = configmanager.ConfigManager(listFile)
+    print (conf.loader)
+    server_list = []
+    for server in conf.loader:
+        server_list.append(server)
 
+    for server in server_list:
+        print("Connecting to" , conf.show(server))
 
 class Shell(cmd.Cmd):
     def __init__(self):
@@ -76,6 +85,14 @@ class Shell(cmd.Cmd):
         while t == None:
             t = self.conn.get_state()
         print(t)
+    def do_connectToList(self,arg):
+        list_of_lists = arg.split(" ")
+        for lista in list_of_lists:
+            path = lista + ".yaml"
+            try:
+                connectToList(path)
+            except configmanager.ConfigManagerError as e:
+                print (e)
 
 
     def do_localConnect(self, arg):

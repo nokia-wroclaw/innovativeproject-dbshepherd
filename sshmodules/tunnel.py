@@ -7,9 +7,6 @@ import sys
 
 import paramiko
 
-SSH_PORT = 22
-DEFAULT_PORT = 4000
-
 class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 

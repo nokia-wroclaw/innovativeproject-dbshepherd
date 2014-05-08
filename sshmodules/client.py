@@ -1,4 +1,5 @@
 import threading
+from time import sleep
 from tunnelmanager import TunnelManager
 
 class Client(threading.Thread):
@@ -20,11 +21,18 @@ class Client(threading.Thread):
                     ret = "może sie udalo"
                     print("D: ",cmd)
                     try:
-                        self.t_manager.connect(1234, cmd[0], "dbshepherd", "dbshepherd", int(cmd[1]),22) #, keypath="")
+                        tunnel_index = self.t_manager.connect(1234, cmd[0], "dbshepherd", "dbshepherd", int(cmd[1]),22) #, keypath="")
+                        for num in range(0,15):
+                            sleep(1)
+                            #print(self.t_manager.lista[tunnel_index].status)
+                            if self.t_manager.lista[tunnel_index].status == "ok":
+                                break
+                            if self.t_manager.lista[tunnel_index].status == "bad":
+                                break
+                        ret = self.t_manager.lista[tunnel_index].status     
                     except IndexError:
                         ret = "Za malo argumentow."
 
-                    
                     print(ret)
                     self.client.send(ret.encode("utf-8"))
 
