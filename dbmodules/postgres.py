@@ -4,7 +4,7 @@ from prettytable import from_db_cursor
 
 import m_core
 
-sys.path.append("..")
+# sys.path.append("..")
 
 import configmanager
 import psycopg2

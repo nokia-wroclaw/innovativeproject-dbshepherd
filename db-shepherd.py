@@ -8,7 +8,7 @@ import configmanager
 
 from sshmodules.tunnelmanager import TunnelManager
 
-sys.path.append("dbmodules")
+# sys.path.append("dbmodules")
 
 manager = TunnelManager()
 
@@ -16,7 +16,8 @@ manager = TunnelManager()
 def set_module(module):
     try:
         if len(module) > 0:
-            exec("get_module('{0}').{1}('{1}').cmdloop()".format(module.lower(), module))
+            __import__("dbmodules." + module.lower())
+            exec("sys.modules['dbmodules.{0}'].{1}().cmdloop()".format(module.lower(),module))
         else:
             print("Musisz podać nazwę modułu!")
     except ImportError as e:
