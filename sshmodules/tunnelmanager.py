@@ -31,7 +31,6 @@ def forward(local_port, host, user, passwd, remote_port, ssh, key):
 				raise TunnelManagerException("Encrypted key, no password")
 			client.connect(host,username=user, port=ssh, pkey=mykey)
 		print ('connected')
-		return "ok"
 		try:
 			forward_tunnel(local_port, '127.0.0.1', remote_port, client.get_transport())
 		except SystemExit:

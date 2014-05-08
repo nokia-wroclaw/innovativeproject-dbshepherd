@@ -26,9 +26,10 @@ class Client(threading.Thread):
                         remote = cmd[4]
 
                         tunnel = self.t_manager.connect(1234, adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
-                        for num in range(0,15):
+                        for num in range(0,10):
                             sleep(1)
-                            #print(self.t_manager.lista[tunnel_index].status)
+                            #print(tunnel.status)
+                            print("Waiting...")
                             if tunnel.status == "ok":
                                 break
                             if tunnel.status == "bad":

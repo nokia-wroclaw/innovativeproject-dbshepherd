@@ -3,7 +3,7 @@ import glob
 from imp import find_module
 import os
 import sys
-import connection
+#import connection
 import configmanager
 
 from sshmodules.tunnelmanager import TunnelManager
@@ -11,11 +11,13 @@ from sshmodules.tunnelmanager import TunnelManager
 # sys.path.append("dbmodules")
 
 manager = TunnelManager()
-try:
-    conn = connection.Connection()
-    conn.start()
-except ConnectionRefusedError:
-    print("Nie można połączyć się z ssh-shepherd, tunele będą tworzone lokalnie.")
+import common
+conn = common.conn
+# try:
+#     conn = connection.Connection()
+#     conn.start()
+# except ConnectionRefusedError:
+#     print("Nie można połączyć się z ssh-shepherd, tunele będą tworzone lokalnie.")
 
 
 def set_module(module):
@@ -27,8 +29,8 @@ def set_module(module):
             print("Musisz podać nazwę modułu!")
     except ImportError as e:
         print(e)
-    except:
-        print("Nie można wczytać modułu:", module)
+    #except:
+     #   print("Nie można wczytać modułu:", module)
 
 
 def get_module(module):
