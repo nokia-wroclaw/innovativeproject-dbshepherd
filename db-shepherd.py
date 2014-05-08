@@ -70,14 +70,23 @@ class Shell(cmd.Cmd):
         else:
             completions = [f for f in self.modules if f.startswith(text)]
         return completions
-
+#adres_user_password_sshport_remoteport
     def do_connect(self, arg):
         """Connecting via ssh"""
-        conn.send(arg)
-        t = None
-        while t == None:
-            t = conn.get_state()
-        print(t)
+        conf_file, server_name = arg.split()
+        try:
+            conf = configmanager.ConfigManager(conf_file)
+            connection =  conf.show(server_name)["connection"]
+            command = connection["adress"] + "_" + connection["user"]+ "_" + \
+                    connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) 
+            conn.send(command)
+            t = None
+            while t == None:
+                t = conn.get_state()
+            print(t)
+        except Exception as e:
+            print (e)
+        
     def do_connectToList(self,arg):
         list_of_lists = arg.split(" ")
         for lista in list_of_lists:
