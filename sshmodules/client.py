@@ -1,6 +1,6 @@
 import threading
 from time import sleep
-from sshmodules.tunnelmanager import TunnelManager
+from tunnelmanager import TunnelManager
 
 class Client(threading.Thread):
     def __init__(self, client,address):
