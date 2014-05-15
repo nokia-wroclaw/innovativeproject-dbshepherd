@@ -1,7 +1,7 @@
 import cmd
 from sys import modules #Nie wywalać!
 from configmanager import ConfigManager, ConfigManagerError
-
+from os.path import splitext
 from ssh_tunnelmanager import TunnelManager
 
 manager = TunnelManager()
@@ -11,8 +11,9 @@ conn = common.conn
 def set_module(module):
     try:
         if len(module) > 0:
-            __import__("mod_" + module.lower())
-            exec("modules['mod_{0}'].{1}().cmdloop()".format(module.lower(),module))
+            module_src = splitext(ConfigManager("modules.yaml").show(module)['source'])[0]
+            __import__(module_src)
+            exec("modules['{0}'].{1}().cmdloop()".format(module_src,module))
         else:
             print("Musisz podać nazwę modułu!")
     except ImportError as e:
