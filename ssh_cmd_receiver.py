@@ -10,6 +10,11 @@ class CmdReceiver(threading.Thread):
         self.client = client
         self.address = address
         self.size = 1024
+
+        from common import port_manager
+        print(port_manager.get_port())
+        print(port_manager.get_port())
+
 #adres_user_password_sshport_remoteport
     def run(self):
         running = 1

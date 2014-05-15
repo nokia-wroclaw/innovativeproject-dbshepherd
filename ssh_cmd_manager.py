@@ -3,6 +3,7 @@ import socket
 import threading
 from ssh_cmd_receiver import CmdReceiver
 
+
 #CmdManager (Server połączeń)
 #Odbiera połączenia od db-shepherd'ów
 #tworzy im własnych odbiorców poleceń (CmdReceiver)

@@ -1,8 +1,0 @@
- test:
-  connection:
-   adress: 127.0.0.1
-   type: tcp
-  test:
-   name: test
-   user: postgres
-   passwd: root
