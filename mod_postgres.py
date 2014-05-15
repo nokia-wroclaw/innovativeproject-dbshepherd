@@ -1,16 +1,15 @@
 import copy
 from prettytable import from_db_cursor
 import sys
-import m_core
+from mod_core import ModuleCore, ParseArgsException
 
-sys.path.append("..")
 import common
 sshshepherd_connection = common.conn
 
 import configmanager
 import psycopg2
 
-class Postgres(m_core.ModuleCore):
+class Postgres(ModuleCore):
     def __init__(self,completekey='tab', stdin=None, stdout=None):
         super().__init__()
         self.set_name('Postgres')
@@ -107,7 +106,7 @@ class Postgres(m_core.ModuleCore):
                 print(e)
 
 
-        except m_core.ParseArgsException as e:
+        except ParseArgsException as e:
             print(e)
         except Exception as e:
             print(e)

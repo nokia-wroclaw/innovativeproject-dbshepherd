@@ -1,8 +1,9 @@
 import threading
 from time import sleep
-from tunnelmanager import TunnelManager
+from ssh_tunnelmanager import TunnelManager
 
-class Client(threading.Thread):
+#CmdReceiver - służy do komunikacji z konkretnym db-shepherdem
+class CmdReceiver(threading.Thread):
     def __init__(self, client,address):
         threading.Thread.__init__(self)
         self.t_manager = TunnelManager()

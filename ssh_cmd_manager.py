@@ -1,9 +1,12 @@
 import select
 import socket
 import threading
-import client
+from ssh_cmd_receiver import CmdReceiver
 
-class Server(threading.Thread):
+#CmdManager (Server połączeń)
+#Odbiera połączenia od db-shepherd'ów
+#tworzy im własnych odbiorców poleceń (CmdReceiver)
+class CmdManager(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.host = ''
@@ -32,7 +35,7 @@ class Server(threading.Thread):
                     print("connection")
                     connection = self.server.accept()
                     print("create")
-                    c = client.Client(connection[0], connection[1])
+                    c = CmdReceiver(connection[0], connection[1])
                     print("start")
                     c.start();
         self.server.close()
@@ -40,6 +43,6 @@ class Server(threading.Thread):
             c.join()
 
 
-s = Server();
+s = CmdManager();
 s.start();
 

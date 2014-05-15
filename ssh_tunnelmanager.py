@@ -8,12 +8,12 @@ import threading
 import configmanager
 from socket import error  #sock 10060
 import errno
-from sshmodules.tunnel import forward_tunnel
+from ssh_tunnel import forward_tunnel
 
 
 class TunnelManagerException(Exception):
-	def __init__(self, msg):
-		self.msg = msg
+    def __init__(self, msg):
+        self.msg = msg
 
 def forward(local_port, host, user, passwd, remote_port, ssh, key):
 	client = paramiko.SSHClient()

@@ -1,51 +1,22 @@
 import cmd
-import glob
-from imp import find_module
-import os
-import sys
-#import connection
-import configmanager
+from sys import modules #Nie wywalać!
+from configmanager import ConfigManager, ConfigManagerError
 
-from sshmodules.tunnelmanager import TunnelManager
-
-# sys.path.append("dbmodules")
+from ssh_tunnelmanager import TunnelManager
 
 manager = TunnelManager()
 import common
 conn = common.conn
-# try:
-#     conn = connection.Connection()
-#     conn.start()
-# except ConnectionRefusedError:
-#     print("Nie można połączyć się z ssh-shepherd, tunele będą tworzone lokalnie.")
-
 
 def set_module(module):
     try:
         if len(module) > 0:
-            __import__("dbmodules." + module.lower())
-            exec("sys.modules['dbmodules.{0}'].{1}().cmdloop()".format(module.lower(),module))
+            __import__("mod_" + module.lower())
+            exec("modules['mod_{0}'].{1}().cmdloop()".format(module.lower(),module))
         else:
             print("Musisz podać nazwę modułu!")
     except ImportError as e:
         print(e)
-    #except:
-     #   print("Nie można wczytać modułu:", module)
-
-
-def get_module(module):
-    return __import__(module)
-
-
-def is_exist(module):
-    try:
-        find_module('dbmodules/' + module)
-        return True
-    except ImportError:
-        return False
-
-
-
 
 class Shell(cmd.Cmd):
     def __init__(self):
@@ -54,11 +25,12 @@ class Shell(cmd.Cmd):
     prompt = "#>"
     modules = []
 
-    for file in os.listdir("dbmodules"):
-        if file.endswith(".py"):
-            module_name = file.title()[:file.rfind(".")]
-            if is_exist(module_name):
-                modules.append(module_name)
+    try:
+        loader = ConfigManager("modules.yaml").loader
+        for module_name in loader:
+            modules.append(module_name)
+    except ConfigManagerError as e:
+        print(e)
 
     def do_exit(self, *args):
         return True
@@ -72,12 +44,13 @@ class Shell(cmd.Cmd):
         else:
             completions = [f for f in self.modules if f.startswith(text)]
         return completions
+
 #adres_user_password_sshport_remoteport
     def do_connect(self, arg):
         """Connecting via ssh"""
         conf_file, server_name = arg.split()
         try:
-            conf = configmanager.ConfigManager(conf_file)
+            conf = ConfigManager(conf_file)
             connection =  conf.show(server_name)["connection"]
             command = connection["adress"] + "_" + connection["user"]+ "_" + \
                     connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) 
@@ -95,9 +68,8 @@ class Shell(cmd.Cmd):
             path = lista + ".yaml"
             try:
                 self.connectToList(path)
-            except configmanager.ConfigManagerError as e:
+            except ConfigManagerError as e:
                 print (e)
-
 
     def do_localConnect(self, arg):
         """Connecting via ssh"""
@@ -115,7 +87,7 @@ class Shell(cmd.Cmd):
         return False
 
     def connectToList(self, listFile):
-        conf = configmanager.ConfigManager(listFile)
+        conf = ConfigManager(listFile)
         
         server_list = []
         for server in conf.loader:
