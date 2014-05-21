@@ -44,6 +44,6 @@ class CmdManager(threading.Thread):
             c.join()
 
 
-s = CmdManager();
-s.start();
+# s = CmdManager();
+# s.start();
 
