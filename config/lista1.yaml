@@ -11,17 +11,3 @@
    name: dbshepherd_local
    user: dbshepherd
    passwd: dbshepherd
-
- rasp:
-  connection:
-   adress: 78.8.0.61
-   type: ssh
-   sshport: 22
-   localport: 1234
-   remoteport: 5432
-   user: pi
-   passwd: raspberry
-  pgBase1:
-   name: dbshepherd_local
-   user: dbshepherd
-   passwd: dbshepherd

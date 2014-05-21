@@ -28,8 +28,8 @@ class CmdReceiver(threading.Thread):
                         ssh = cmd[3]
                         remote = cmd[4]
 
-                        tunnel = self.t_manager.connect(1234, adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
-                        for num in range(0,10):
+                        tunnel = self.t_manager.connect(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
+                        for num in range(0,20):
                             sleep(1)
                             #print(tunnel.status)
                             print("Waiting...")

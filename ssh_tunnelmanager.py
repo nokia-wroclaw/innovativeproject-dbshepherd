@@ -9,45 +9,12 @@ import configmanager
 from socket import error  #sock 10060
 import errno
 from ssh_tunnel import forward_tunnel
-
+from ssh_common import port_manager
 
 class TunnelManagerException(Exception):
     def __init__(self, msg):
         self.msg = msg
 
-def forward(local_port, host, user, passwd, remote_port, ssh, key):
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-	try:
-		print ('connecting to', host)
-		if(key==""):
-			client.connect(host,username=user, password=passwd,port=ssh)
-		else:
-			try:
-				mykey = paramiko.RSAKey.from_private_key_file(key,"qwerty12")
-			except paramiko.PasswordRequiredException:
-				raise TunnelManagerException("Encrypted key, no password")
-			client.connect(host,username=user, port=ssh, pkey=mykey)
-		print ('connected')
-		try:
-			forward_tunnel(local_port, '127.0.0.1', remote_port, client.get_transport())
-		except SystemExit:
-			raise TunnelManagerException("C-c: Port forwarding stopped.")
-	except ConnectionRefusedError:
-		raise TunnelManagerException("ConnectionRefusedError")
-	except paramiko.ssh_exception.AuthenticationException as e:
-	 	raise TunnelManagerException(e)
-	except paramiko.ssh_exception.SSHException as e:
-		raise TunnelManagerException(e)
-	except error as e: #sock 10060 timeout, 10013 socket juz zajety
-		raise TunnelManagerException(e.errno)
-	except Exception as e:
-		raise TunnelManagerException(e)
-	except:
-		# other unhandled exceptions
-		raise TunnelManagerException("Unknown Exception")
 
 class Tunnel(threading.Thread):
 	def __init__(self, local_port, host, user, passwd, remote_port,ssh_port,keypath):
@@ -63,25 +30,60 @@ class Tunnel(threading.Thread):
 		self.status = "unknown"
 	def run(self):
 		try:
-			self.status = forward(self.local, self.host, self.user, self.passwd, self.remote, self.ssh_port, self.keypath)
+			self.forward(self.local, self.host, self.user, self.passwd, self.remote, self.ssh_port, self.keypath)
 		except TunnelManagerException as e:
 			print ("Unable to create tunnel (", self.host, ") reason:", e)
 			self.status = "bad"
+	def forward(self, local_port, host, user, passwd, remote_port, ssh, key):
+		client = paramiko.SSHClient()
+		client.load_system_host_keys()
+		client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+		try:
+			print ('connecting to', host)
+			if(key==""):
+				client.connect(host,username=user, password=passwd,port=ssh)
+			else:
+				try:
+					mykey = paramiko.RSAKey.from_private_key_file(key,"qwerty12")
+				except paramiko.PasswordRequiredException:
+					raise TunnelManagerException("Encrypted key, no password")
+				client.connect(host,username=user, port=ssh, pkey=mykey)
+			print ('connected')
+			#tutaj juz powinnismy byc podlaczeni
+			self.status="ok"
+			try:
+				forward_tunnel(local_port, '127.0.0.1', remote_port, client.get_transport())
+			except SystemExit:
+				raise TunnelManagerException("C-c: Port forwarding stopped.")
+		except ConnectionRefusedError:
+			raise TunnelManagerException("ConnectionRefusedError")
+		except paramiko.ssh_exception.AuthenticationException as e:
+		 	raise TunnelManagerException(e)
+		except paramiko.ssh_exception.SSHException as e:
+			raise TunnelManagerException(e)
+		except error as e: #sock 10060 timeout, 10013 socket juz zajety
+			raise TunnelManagerException(e.errno)
+		except Exception as e:
+			raise TunnelManagerException(e)
+		except:
+			# other unhandled exceptions
+			raise TunnelManagerException("Unknown Exception")
 
 class TunnelManager():
 	def __init__(self):
 		self.lista =[]
-		self.local_port = 1234
-	def connect(self,local_port, host, user, passwd, remote_port, ssh_port, keypath=""):
+	def connect(self, host, user, passwd, remote_port, ssh_port, keypath=""):
 		try:
 			for tunnel in self.lista:
-				if tunnel.host == host:
+				if tunnel.host == host and tunnel.status == 'ok':
 					return tunnel
 			index = len(self.lista)
-
-			w = Tunnel(self.local_port, host, user, passwd, remote_port, ssh_port, keypath)
+			## BLOKOWANIE ##
+			local_port = port_manager.get_port() 
+			################
+			w = Tunnel(local_port, host, user, passwd, remote_port, ssh_port, keypath)
 			self.lista.append(w)
-			self.local_port += 1
 			w.start()
 			return self.lista[index]
 		except TunnelManagerException as e:
