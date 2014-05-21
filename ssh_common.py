@@ -1,3 +1,6 @@
+from ssh_tunnelmanager import TunnelManager
+permament_tunnel_manager = TunnelManager()
+
 class PortManager(object):
     global_port = 13931
 

@@ -2,6 +2,7 @@ import threading
 from time import sleep
 from ssh_tunnelmanager import TunnelManager
 from ssh_common import port_manager
+from ssh_common import permament_tunnel_manager
 
 #CmdReceiver - służy do komunikacji z konkretnym db-shepherdem
 class CmdReceiver(threading.Thread):
@@ -27,17 +28,42 @@ class CmdReceiver(threading.Thread):
                         passwd = cmd[2]
                         ssh = cmd[3]
                         remote = cmd[4]
+                        permament = cmd[5]
 
-                        tunnel = self.t_manager.connect(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
-                        for num in range(0,20):
-                            sleep(1)
-                            #print(tunnel.status)
-                            print("Waiting...")
-                            if tunnel.status == "ok":
-                                break
-                            if tunnel.status == "bad":
-                                break
-                        
+                        tunnel = None
+                        if permament == "no":
+                            if self.t_manager.is_alive(adr):
+                                tunnel = self.t_manager.get_tunnel(adr)
+                            elif permament_tunnel_manager.is_alive(adr):
+                                tunnel = permament_tunnel_manager.get_tunnel(adr)
+                            else:
+                                tunnel = self.t_manager.connect(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
+                                for num in range(0,20):
+                                    sleep(1)
+                                    #print(tunnel.status)
+                                    print("Waiting...")
+                                    if tunnel.status == "ok":
+                                        break
+                                    if tunnel.status == "bad":
+                                        break
+                        elif permament == "yes":
+                            if self.t_manager.is_alive(adr):
+                                ret = "exist-non-permament"
+                                self.client.send(ret.encode("utf-8"))
+                                return
+                            elif permament_tunnel_manager.is_alive(adr):
+                                tunnel = permament_tunnel_manager.get_tunnel(adr)
+                            else:
+                                 tunnel = permament_tunnel_manager(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
+                                for num in range(0,20):
+                                    sleep(1)
+                                    #print(tunnel.status)
+                                    print("Waiting...")
+                                    if tunnel.status == "ok":
+                                        break
+                                    if tunnel.status == "bad":
+                                        break
+
                         ret =  tunnel.status + "_" + tunnel.host + "_" + str(tunnel.local)
                     except IndexError:
                         ret = "Za malo argumentow."

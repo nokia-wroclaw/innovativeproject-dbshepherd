@@ -1,9 +1,6 @@
 import connection
 conn = None
 
-from ssh_tunnelmanager import TunnelManager
-permament_tunnel_manager = TunnelManager()
-
 try:
     conn = connection.Connection()
     conn.start()
