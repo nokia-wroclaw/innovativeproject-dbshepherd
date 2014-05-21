@@ -1,7 +1,5 @@
 import threading
 from time import sleep
-#from ssh_tunnelmanager import TunnelManager as TM
-from ssh_common import port_manager
 import ssh_tunnelmanager
 import ssh_common
 
@@ -33,10 +31,10 @@ class CmdReceiver(threading.Thread):
 
                         tunnel = None
                         if permament == "no":
-                            if self.t_manager.is_alive(adr):
-                                tunnel = self.t_manager.get_tunnel(adr)
-                            elif ssh_common.permament_tunnel_manager.is_alive(adr):
-                                tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr)
+                            if self.t_manager.is_alive(adr,remote):
+                                tunnel = self.t_manager.get_tunnel(adr,remote)
+                            elif ssh_common.permament_tunnel_manager.is_alive(adr,remote):
+                                tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr,remote)
                             else:
                                 tunnel = self.t_manager.connect(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
                                 for num in range(0,20):
@@ -48,12 +46,12 @@ class CmdReceiver(threading.Thread):
                                     if tunnel.status == "bad":
                                         break
                         elif permament == "yes":
-                            if self.t_manager.is_alive(adr):
+                            if self.t_manager.is_alive(adr,remote):
                                 ret = "exist-non-permament"
                                 self.client.send(ret.encode("utf-8"))
                                 return
-                            elif ssh_common.permament_tunnel_manager.is_alive(adr):
-                                tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr)
+                            elif ssh_common.permament_tunnel_manager.is_alive(adr,remote):
+                                tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr,remote)
                             else:
                                 tunnel = ssh_common.permament_tunnel_manager(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
                                 for num in range(0,20):

@@ -4,7 +4,7 @@ import sys
 
 import threading
 import configmanager
-from socket import error  #sock 10060
+from socket import error
 import errno
 from ssh_tunnel import forward_tunnel
 import ssh_common
@@ -95,15 +95,15 @@ class TunnelManager(object):
 		except IndexError:
 			self.connect(connection['localport'],connection['adress'],connection['user'],passwd,connection['remoteport'],connection['sshport'])
 	
-	def is_alive(self, host_name):
+	def is_alive(self, host_name,remote):
 		for tunnel in self.lista:
-			if tunnel.host == host_name and tunnel.status == 'ok':
+			if tunnel.host == host_name and tunnel.remote == int(remote) and tunnel.status == 'ok':
 				return True
 		return False
 		
-	def get_tunnel(self, host_name):
+	def get_tunnel(self, host_name,remote):
 		for tunnel in self.lista:
-			if tunnel.host == host_name and tunnel.status == 'ok':
+			if tunnel.host == host_name and tunnel.remote == int(remote) and tunnel.status == 'ok':
 				return tunnel
 		return None
 	
