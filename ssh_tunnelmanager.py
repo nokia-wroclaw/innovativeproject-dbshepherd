@@ -75,9 +75,6 @@ class TunnelManager():
 		self.lista =[]
 	def connect(self, host, user, passwd, remote_port, ssh_port, keypath=""):
 		try:
-			for tunnel in self.lista:
-				if tunnel.host == host and tunnel.status == 'ok':
-					return tunnel
 			index = len(self.lista)
 			## BLOKOWANIE ##
 			local_port = port_manager.get_port() 
@@ -100,14 +97,20 @@ class TunnelManager():
 		except IndexError:
 			self.connect(connection['localport'],connection['adress'],connection['user'],passwd,connection['remoteport'],connection['sshport'])
 	
-	def isAlive(self, host_name):
-		for server in self.lista:
-			if server.host == host_name:
+	def is_alive(self, host_name):
+		for tunnel in self.lista:
+			if tunnel.host == host_name and tunnel.status == 'ok':
 				return True
 		return False
+		
+	def get_tunnel(self, host_name):
+		for tunnel in self.lista:
+			if tunnel.host == host_name and tunnel.status == 'ok':
+				return tunnel
+		return None
 	
 	def clean(self):
-		for tunnel in self.lista:
+		for tunnel in self.lista :
 			#print (tunnel)
 			if(tunnel.status == "bad" or tunnel.status == "unknown" ):
 				print ("trying to del", tunnel.name)
