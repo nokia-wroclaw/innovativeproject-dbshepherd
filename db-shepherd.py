@@ -115,7 +115,7 @@ class Shell(cmd.Cmd):
             #Poprawić cmd
             # adres_user_password_sshport_remoteport
             command = connection["adress"] + "_" + connection["user"]+ "_" + \
-                    connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"])
+                    connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_no"
             try:
                 conn.send(command)
                 t = None
@@ -123,8 +123,11 @@ class Shell(cmd.Cmd):
                   t = conn.get_state()
                 #status_adres_localport
                 server_status = t.split("_")
-                connection_list[server_status[1]]=server_status[2]
-                print("Connecting to" , connection["adress"], "[", server_status[0], "]")
+                try:
+                    connection_list[server_status[1]]=server_status[2]
+                    print("Connecting to" , connection["adress"], "[", server_status[0], "]")
+                except IndexError as e:
+                    print(t)
             except AttributeError as e:
                 print("CONNECTING USING LOCAL MANAGER!")
         print(connection_list)

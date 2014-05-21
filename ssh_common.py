@@ -1,5 +1,6 @@
-from ssh_tunnelmanager import TunnelManager
-permament_tunnel_manager = TunnelManager()
+#import ssh_tunnelmanager
+#permament_tunnel_manager = ssh_tunnelmanager.TunnelManager()
+permament_tunnel_manager = None
 
 class PortManager(object):
     global_port = 13931

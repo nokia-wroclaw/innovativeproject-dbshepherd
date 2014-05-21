@@ -2,14 +2,12 @@ import paramiko
 import time
 import sys
 
-sys.path.append("..")
-
 import threading
 import configmanager
 from socket import error  #sock 10060
 import errno
 from ssh_tunnel import forward_tunnel
-from ssh_common import port_manager
+import ssh_common
 
 class TunnelManagerException(Exception):
     def __init__(self, msg):
@@ -70,14 +68,14 @@ class Tunnel(threading.Thread):
 			# other unhandled exceptions
 			raise TunnelManagerException("Unknown Exception")
 
-class TunnelManager():
+class TunnelManager(object):
 	def __init__(self):
 		self.lista =[]
 	def connect(self, host, user, passwd, remote_port, ssh_port, keypath=""):
 		try:
 			index = len(self.lista)
 			## BLOKOWANIE ##
-			local_port = port_manager.get_port() 
+			local_port = ssh_common.port_manager.get_port()
 			################
 			w = Tunnel(local_port, host, user, passwd, remote_port, ssh_port, keypath)
 			self.lista.append(w)

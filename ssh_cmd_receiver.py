@@ -1,14 +1,15 @@
 import threading
 from time import sleep
-from ssh_tunnelmanager import TunnelManager
+#from ssh_tunnelmanager import TunnelManager as TM
 from ssh_common import port_manager
-from ssh_common import permament_tunnel_manager
+import ssh_tunnelmanager
+import ssh_common
 
 #CmdReceiver - służy do komunikacji z konkretnym db-shepherdem
 class CmdReceiver(threading.Thread):
     def __init__(self, client,address):
         threading.Thread.__init__(self)
-        self.t_manager = TunnelManager()
+        self.t_manager = ssh_tunnelmanager.TunnelManager()
         self.client = client
         self.address = address
         self.size = 1024
@@ -34,8 +35,8 @@ class CmdReceiver(threading.Thread):
                         if permament == "no":
                             if self.t_manager.is_alive(adr):
                                 tunnel = self.t_manager.get_tunnel(adr)
-                            elif permament_tunnel_manager.is_alive(adr):
-                                tunnel = permament_tunnel_manager.get_tunnel(adr)
+                            elif ssh_common.permament_tunnel_manager.is_alive(adr):
+                                tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr)
                             else:
                                 tunnel = self.t_manager.connect(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
                                 for num in range(0,20):
@@ -51,10 +52,10 @@ class CmdReceiver(threading.Thread):
                                 ret = "exist-non-permament"
                                 self.client.send(ret.encode("utf-8"))
                                 return
-                            elif permament_tunnel_manager.is_alive(adr):
-                                tunnel = permament_tunnel_manager.get_tunnel(adr)
+                            elif ssh_common.permament_tunnel_manager.is_alive(adr):
+                                tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr)
                             else:
-                                 tunnel = permament_tunnel_manager(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
+                                tunnel = ssh_common.permament_tunnel_manager(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
                                 for num in range(0,20):
                                     sleep(1)
                                     #print(tunnel.status)

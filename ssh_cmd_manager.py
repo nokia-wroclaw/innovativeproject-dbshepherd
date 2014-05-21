@@ -2,7 +2,9 @@ import select
 import socket
 import threading
 from ssh_cmd_receiver import CmdReceiver
-
+import ssh_tunnelmanager
+import ssh_common
+ssh_common.permament_tunnel_manager = ssh_tunnelmanager.TunnelManager()
 
 #CmdManager (Server połączeń)
 #Odbiera połączenia od db-shepherd'ów
