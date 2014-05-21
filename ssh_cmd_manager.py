@@ -42,8 +42,3 @@ class CmdManager(threading.Thread):
         self.server.close()
         for c in self.threads:
             c.join()
-
-
-# s = CmdManager();
-# s.start();
-
