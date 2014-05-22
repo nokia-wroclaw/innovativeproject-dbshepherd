@@ -11,13 +11,15 @@ conn = common.conn
 def set_module(module):
     try:
         if len(module) > 0:
-            module_src = splitext(ConfigManager("modules.yaml").show(module)['source'])[0]
+            module_src = splitext(ConfigManager("modules.yaml").get(module)['source'])[0]
             __import__(module_src)
             exec("modules['{0}'].{1}().cmdloop()".format(module_src,module))
         else:
             print("Musisz podać nazwę modułu!")
     except ImportError as e:
         print(e)
+    except ConfigManagerError as e:
+        print("Can't load [" + module + "] check modules.yaml")
 
 class Shell(cmd.Cmd):
     def __init__(self):
@@ -64,7 +66,7 @@ class Shell(cmd.Cmd):
                 print ("connect serv...")
                 try:
                     conf = ConfigManager("config/"+params[0]+".yaml")
-                    connection =  conf.show(params[1])["connection"]
+                    connection =  conf.get(params[1])["connection"]
                     command = connection["adress"] + "_" + connection["user"]+ "_" + \
                             connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"])
                     try:
@@ -111,7 +113,7 @@ class Shell(cmd.Cmd):
 
         connection_list ={}
         for server in server_list:
-            connection =  conf.show(server)["connection"]
+            connection =  conf.get(server)["connection"]
             #Poprawić cmd
             # adres_user_password_sshport_remoteport
             command = connection["adress"] + "_" + connection["user"]+ "_" + \

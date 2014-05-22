@@ -7,7 +7,12 @@
    remoteport: 5432
    user: dbshepherd
    passwd: dbshepherd
-  pgBase1:
-   name: dbshepherd_local
-   user: dbshepherd
-   passwd: dbshepherd
+  databases:
+   pgBase_test:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+   pgBasex:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd

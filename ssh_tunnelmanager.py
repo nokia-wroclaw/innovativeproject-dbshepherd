@@ -85,7 +85,7 @@ class TunnelManager(object):
 			raise TunnelManagerException(e)
 	def connectToAlias(self, args):
 		yaml = configmanager.ConfigManager("conf.yaml")
-		connection = yaml.show(args.split()[0])['connection']
+		connection = yaml.get(args.split()[0])['connection']
 		try:
 			passwd = connection['passwd']
 		except KeyError:
