@@ -28,13 +28,13 @@ class Postgres(ModuleCore):
             if status == "ok":  #udało się utworzyć tunel
                 try:
                     pg_conn = psycopg2.connect(dbname=database["name"],user=database["user"],host=adr,password=database["passwd"],port=db_port)
+                    pg_conn.autocommit = True;
                     cur = pg_conn.cursor()
                     cur.execute(db_query)
 
                     pt = from_db_cursor(cur)
                     if(pt != None):
                         print(pt)
-                    pg_conn.commit()
                 except psycopg2.Error as e:
                     print('Error: ', e)
                 except psycopg2.Warning as w:
@@ -138,9 +138,9 @@ class Postgres(ModuleCore):
 
                 try:
                     conn = psycopg2.connect(dbname=db_name,user=usr,host=adr,password=pwd, port=5432)
+                    conn.autocommit = True;
                     cur = conn.cursor()
                     cur.execute(values[2])
-                    conn.commit()
 
                     return cur.fetchall();
 

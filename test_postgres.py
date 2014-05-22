@@ -1,7 +1,7 @@
 import unittest
 import sys
 sys.path.append("..")
-from dbmodules.postgres import Postgres
+from mod_postgres import Postgres
 
 
 class PostgresTest(unittest.TestCase):
