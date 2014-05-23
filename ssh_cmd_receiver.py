@@ -54,13 +54,14 @@ class CmdReceiver(threading.Thread):
                                 tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr,remote)
                             else:
                                 tunnel = ssh_common.permament_tunnel_manager(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
-                                for num in range(0,20):
+                                for num in range(0,5):
                                     sleep(1)
                                     #print(tunnel.status)
                                     print("Waiting...")
                                     if tunnel.status == "ok":
                                         break
                                     if tunnel.status == "bad":
+                                        # tu mozna wywołać "garbage collectora" do tuneli
                                         break
 
                         ret =  tunnel.status + "_" + tunnel.host + "_" + str(tunnel.local)
@@ -69,6 +70,8 @@ class CmdReceiver(threading.Thread):
                     print("D: ",cmd)
                     print(ret)
                     self.client.send(ret.encode("utf-8"))
+                    #Chwilowo clean po kazdorazowym dodaniu tunelu
+                    self.t_manager.clean()
 
         except ConnectionResetError as e:
             for tunnel in self.t_manager.lista:

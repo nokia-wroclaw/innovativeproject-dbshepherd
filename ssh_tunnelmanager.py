@@ -108,8 +108,12 @@ class TunnelManager(object):
 		return None
 	
 	def clean(self):
+		
+		print("clean")
+		print(len(self.lista))
 		for tunnel in self.lista :
-			#print (tunnel)
 			if(tunnel.status == "bad" or tunnel.status == "unknown" ):
 				print ("trying to del", tunnel.name)
+				#blokowanie? 
 				del self.lista[self.lista.index(tunnel)]
+		print(len(self.lista))
