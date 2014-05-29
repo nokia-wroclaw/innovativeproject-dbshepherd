@@ -3,10 +3,23 @@ from sys import modules #Nie wywalać!
 from configmanager import ConfigManager, ConfigManagerError
 from os.path import splitext
 from ssh_tunnelmanager import TunnelManager
+import os
 
 manager = TunnelManager()
+
 import common
 conn = common.conn
+def send_command(command):
+    try:
+        conn.send(command)
+        t = None
+        while t == None:
+            t = conn.get_state()
+        return t
+    except AttributeError as e:
+        print (e)
+
+
 
 def set_module(module):
     try:
@@ -50,13 +63,26 @@ class Shell(cmd.Cmd):
    
     def do_connect(self, arg):
         "Connect to (all), list, list.server"
-        if arg == "":
-            print ("connect to all...")
-            import os
+        if arg == "": # if no args connect to all
+            print ("Connect to all")
+            ans = input("Are you sure?[NO/yes/info]: ")
+            lists = []
             for file in os.listdir("config"):
-                if file.endswith(".yaml"):
-                    list_name = file.title()[:file.rfind(".")]
-                    print("connecting to...", list_name)
+                    if file.endswith(".yaml"):
+                        list_name = file.title()[:file.rfind(".")]
+                        lists.append(list_name)
+
+            if ans == "info":
+                print ("Lists with servers to connect:")
+                for l in lists:
+                    print(l)
+            elif ans == "yes":
+                for l in lists:
+                    print("Connecting(",l,")")
+                    self.connectList("config/" + l + ".yaml")
+            else:
+                print("Aborted")
+
         else:   
             params = arg.split(".")
             if len(params) == 1:
@@ -68,7 +94,7 @@ class Shell(cmd.Cmd):
                     conf = ConfigManager("config/"+params[0]+".yaml")
                     connection =  conf.get(params[1])["connection"]
                     command = connection["adress"] + "_" + connection["user"]+ "_" + \
-                            connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"])
+                            connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"])+ "_no"
                     try:
                         conn.send(command)
                         t = None
@@ -85,16 +111,24 @@ class Shell(cmd.Cmd):
             else:
                 print ("error")
 
-    def do_disconnect(self,arg):
-        try:
-            command = "clean;" + arg
-            conn.send(command)
-            t = None
-            while t == None:
-                t = conn.get_state()
-            print(t)
-        except AttributeError as e:
-            print (e)
+    def do_perm(self,arg):
+        params = arg.split(".")
+        conf = ConfigManager("config/"+params[0]+".yaml")
+        connection =  conf.get(params[1])["connection"]
+        ret = send_command(self.connect_command_builder(connection,"yes"))
+        print (ret)
+
+    def do_disconnect(self, arg):
+        "Close connection to serv:port;serv2:port;..."
+        command = "clean;" + arg
+        ret = send_command(command)
+        print (ret)
+
+    def do_list(self ,arg):
+        "Print all created tunnels"
+        ret = send_command("list")
+        print (ret)
+
 
     def do_localConnect(self, arg):
         """Connecting via ssh"""
@@ -110,6 +144,11 @@ class Shell(cmd.Cmd):
 
     def emptyline(self):
         return False
+
+    def connect_command_builder(self,connection, perm):
+        command = connection["adress"] + "_" + connection["user"]+ "_" + \
+                    connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+        return command
 
     def connectList(self, listFile):
         try:
@@ -127,8 +166,7 @@ class Shell(cmd.Cmd):
             connection =  conf.get(server)["connection"]
             #Poprawić cmd
             # adres_user_password_sshport_remoteport
-            command = connection["adress"] + "_" + connection["user"]+ "_" + \
-                    connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_no"
+            command = self.connect_command_builder(connection,"no")
             try:
                 conn.send(command)
                 t = None
@@ -150,5 +188,6 @@ try:
     Shell().cmdloop()
     conn.stop()
 except KeyboardInterrupt:
+    conn.stop()
     print("")
     pass

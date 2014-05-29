@@ -32,8 +32,7 @@ class Handler (socketserver.BaseRequestHandler):
                     (self.chain_host, self.chain_port))
             return
 
-        print('Connected!  Tunnel open %r -> %r -> %r' % (self.request.getpeername(),
-                                                            chan.getpeername(), (self.chain_host, self.chain_port)))
+        print('Connected!  Tunnel open %r -> %r -> %r' % (self.request.getpeername(), chan.getpeername(), (self.chain_host, self.chain_port)))
         while True:
             r, w, x = select.select([self.request, chan], [], [])
             if self.request in r:
@@ -58,4 +57,6 @@ def forward_tunnel(local_port, remote_host, remote_port, transport):
         chain_host = remote_host
         chain_port = remote_port
         ssh_transport = transport
-    ForwardServer(('', local_port), SubHandler).serve_forever()
+    tunnel = ForwardServer(('', local_port), SubHandler)
+    return tunnel
+    #ForwardServer(('', local_port), SubHandler).serve_forever()

@@ -25,6 +25,7 @@ class Tunnel(threading.Thread):
 		self.remote = remote_port
 		self.ssh_port = ssh_port
 		self.keypath = keypath
+		self.tunnel = None
 		self.status = "unknown"
 	def run(self):
 		try:
@@ -51,7 +52,8 @@ class Tunnel(threading.Thread):
 			#tutaj juz powinnismy byc podlaczeni
 			self.status="ok"
 			try:
-				forward_tunnel(local_port, '127.0.0.1', remote_port, client.get_transport())
+				self.tunnel = forward_tunnel(local_port, '127.0.0.1', remote_port, client.get_transport())
+				self.tunnel.serve_forever()
 			except SystemExit:
 				raise TunnelManagerException("C-c: Port forwarding stopped.")
 		except ConnectionRefusedError:
@@ -67,6 +69,10 @@ class Tunnel(threading.Thread):
 		except:
 			# other unhandled exceptions
 			raise TunnelManagerException("Unknown Exception")
+
+	def stop(self):
+		self.tunnel.shutdown()
+		self._stop()
 
 class TunnelManager(object):
 	def __init__(self):
