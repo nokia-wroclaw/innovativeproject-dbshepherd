@@ -78,6 +78,7 @@ class TunnelManager(object):
 			local_port = ssh_common.port_manager.get_port()
 			################
 			w = Tunnel(local_port, host, user, passwd, remote_port, ssh_port, keypath)
+
 			self.lista.append(w)
 			w.start()
 			return self.lista[index]

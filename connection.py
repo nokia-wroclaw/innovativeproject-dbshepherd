@@ -24,10 +24,17 @@ class Connection(threading.Thread):
         return st
 
     def run(self):
-        running = 1
-        while running:
+        self.running = True
+        while self.running:
             data = self.sock.recv(self.size)
             if data:
                 self.lock.acquire()
                 self.state = data.decode("utf-8")
                 self.lock.release()
+
+    def stop(self):
+        try:
+            self._stop()
+        except Exception as e:
+            print(e)
+            print(str(self.getName()) + ' could not be terminated')

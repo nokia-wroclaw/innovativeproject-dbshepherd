@@ -85,6 +85,17 @@ class Shell(cmd.Cmd):
             else:
                 print ("error")
 
+    def do_disconnect(self,arg):
+        try:
+            command = "clean;" + arg
+            conn.send(command)
+            t = None
+            while t == None:
+                t = conn.get_state()
+            print(t)
+        except AttributeError as e:
+            print (e)
+
     def do_localConnect(self, arg):
         """Connecting via ssh"""
         manager.connectToAlias(arg)
@@ -137,6 +148,7 @@ class Shell(cmd.Cmd):
 # if __name__ == '__main__':
 try:
     Shell().cmdloop()
+    conn.stop()
 except KeyboardInterrupt:
     print("")
     pass
