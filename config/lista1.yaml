@@ -16,3 +16,17 @@
     name: dbshepherd_local
     user: dbshepherd
     passwd: dbshepherd
+ seba:
+  connection:
+   adress: 192.168.0.100
+   type: ssh
+   sshport: 22
+   localport: 1234
+   remoteport: 5432
+   user: shepherd
+   passwd: shepherd
+  databases:
+   db_dump:
+    name: test
+    user: test
+    passwd: dbshepherd
