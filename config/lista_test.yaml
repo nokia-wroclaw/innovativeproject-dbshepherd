@@ -4,7 +4,6 @@
    type: ssh
    sshport: 443
    remoteport: 5432
-
    passwd: nsnshepherd
   databases:
    pgBase_test:
@@ -21,7 +20,6 @@
    adress: kax-gate.noip.me
    type: ssh
    sshport: 222
-   localport: 1234
    remoteport: 443
    user: nsn
    passwd: nsnshepherd
@@ -40,7 +38,6 @@
    adress: antivps.pl
    type: ssh
    sshport: 22
-   localport: 1234
    remoteport: 5432
    user: shepherd
    passwd: dbshepherd
@@ -59,7 +56,6 @@
    adress: antivps.pl
    type: ssh
    sshport: 22
-   localport: 1234
    remoteport: 5432
    user: dbshepherd
    passwd: dbshepherd

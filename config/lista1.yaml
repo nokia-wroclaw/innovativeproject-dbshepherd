@@ -3,7 +3,6 @@
    adress: antivps.pl
    type: ssh
    sshport: 22
-   localport: 1234
    remoteport: 5432
    user: dbshepherd
    passwd: dbshepherd
@@ -21,7 +20,6 @@
    adress: 192.168.0.100
    type: ssh
    sshport: 22
-   localport: 1234
    remoteport: 5432
    user: shepherd
    passwd: shepherd
