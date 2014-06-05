@@ -130,5 +130,6 @@ class TunnelManager(object):
 		for tunnel in self.lista:
 			if (tunnel.status == "bad" or tunnel.status == "unknown" ):
 				#blokowanie?
+				tunnel.stop()
 				del self.lista[self.lista.index(tunnel)]
 		print(len(self.lista))

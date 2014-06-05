@@ -90,15 +90,18 @@ class Tunnel():
 			self.status = 'ok'
 		except:
 			self.status = 'bad'
+	def is_alive(self):
+		try:
+			chan = self.client.get_transport().open_session()
+			chan.exec_command("uname")
+		except Exception as e:
+			self.status = "bad"
 
 	def stop(self):
-		self.th.stop()
-		pass
-
+		if self.th != None:
+			self.th.stop()
 
 # t = Tunnel('localhost', 1234, 'antivps.pl', 5432, 'dbshepherd', 'dbshepherd')
 # t2 = Tunnel('localhost', 1235, 'kax-gate.noip.me', 443, 'nsn', 'nsnshepherd')
-# print('OK')
-import time
-# time.sleep(30)
-# t.stop()
+
+    
