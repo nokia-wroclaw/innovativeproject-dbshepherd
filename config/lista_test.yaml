@@ -1,0 +1,75 @@
+ InvalidConnection:
+  connection:
+   adress: kax-gate.noip.me
+   type: ssh
+   sshport: 443
+   remoteport: 5432
+
+   passwd: nsnshepherd
+  databases:
+   pgBase_test:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+   pgBasex:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+
+ InvalidSSHPort:
+  connection:
+   adress: kax-gate.noip.me
+   type: ssh
+   sshport: 222
+   localport: 1234
+   remoteport: 443
+   user: nsn
+   passwd: nsnshepherd
+  databases:
+   pgBase_test:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+   pgBasex:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+
+ InvalidUsername:
+  connection:
+   adress: antivps.pl
+   type: ssh
+   sshport: 22
+   localport: 1234
+   remoteport: 5432
+   user: shepherd
+   passwd: dbshepherd
+  databases:
+   pgBase_test:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+   pgBasex:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+ 
+ ShouldBeOK:
+  connection:
+   adress: antivps.pl
+   type: ssh
+   sshport: 22
+   localport: 1234
+   remoteport: 5432
+   user: dbshepherd
+   passwd: dbshepherd
+  databases:
+   pgBase_test:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+   pgBasex:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+

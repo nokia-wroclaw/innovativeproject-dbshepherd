@@ -1,12 +1,15 @@
 import select
 import paramiko
 import threading
-
+from socket import error
 try:
 	import SocketServer
 except ImportError:
 	import socketserver as SocketServer
 
+class TunnelException(Exception):
+	def __init__(self, msg):
+		self.msg = msg
 
 class ForwardServer(SocketServer.ThreadingTCPServer):
 	daemon_threads = True
@@ -78,6 +81,7 @@ class Tunnel():
 		self.client = paramiko.SSHClient()
 		self.client.load_system_host_keys()
 		self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		
 		self.th = None
 		self.status = "unknown"
 		self.remote_host = remote_host
@@ -86,12 +90,30 @@ class Tunnel():
 		self.passwd = passwd
 		self.user_name = user_name
 		try:
+			print("Connecting to", remote_host)
 			self.client.connect(remote_host, username=user_name, password=passwd)
 			self.th = TunnelThread(local_port, remote_host, remote_port, self.client)
 			self.th.start()
 			self.status = 'ok'
+		except ConnectionRefusedError:
+			self.status = "bad"
+			raise TunnelException("ConnectionRefusedError")
+		except paramiko.ssh_exception.AuthenticationException as e:
+			self.status = "bad"
+			raise TunnelException(e)
+		except paramiko.ssh_exception.SSHException as e:
+			self.status = "bad"
+			raise TunnelException(e)
+		except error as e:
+			self.status = "bad"
+			raise TunnelException("SocketError: " +str(e.errno))
+		except Exception as e:
+			self.status = "bad"
+			raise TunnelException(e)
 		except:
-			self.status = 'bad'
+			#other unhandled exceptions
+			self.status = "unknown"
+			raise TunnelException("Unknown Exception")
 
 	def is_alive(self):
 		try:

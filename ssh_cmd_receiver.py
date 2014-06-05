@@ -76,15 +76,18 @@ class CmdReceiver(threading.Thread):
 									tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr,remote_port)
 								else:
 									tunnel = self.t_manager.connect(adr, usr, passwd, int(remote_port), int(ssh)) #, keypath="")
-									for num in range(0,3):
-										sleep(1)
-										#print(tunnel.status)
-										print("Waiting...")
-										if tunnel.status == "ok":
-											break
-										if tunnel.status == "bad":
-											break
-								ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
+									if tunnel != None:
+										for num in range(0,20):
+											sleep(1)
+											#print(tunnel.status)
+											print("Waiting...")
+											if tunnel.status == "ok":
+												break
+											if tunnel.status == "bad":
+												break
+										ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
+									else:
+										ret =  "bad_" + adr + "_" + remote_port
 							elif permament == "yes":
 								if self.t_manager.is_alive(adr,remote_port):
 									ret = "exist-non-permament"
@@ -95,17 +98,19 @@ class CmdReceiver(threading.Thread):
 									ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
 								else:
 									tunnel = ssh_common.permament_tunnel_manager.connect(adr, usr, passwd, int(remote_port), int(ssh)) #, keypath="")
-									for num in range(0,5):
-										sleep(1)
-										#print(tunnel.status)
-										print("Waiting...")
-										if tunnel.status == "ok":
-											break
-										if tunnel.status == "bad":
-											# tu mozna wywołać "garbage collectora" do tuneli
-											break
-									ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
-									
+									if tunnel != None:
+										for num in range(0,20):
+											sleep(1)
+											#print(tunnel.status)
+											print("Waiting...")
+											if tunnel.status == "ok":
+												break
+											if tunnel.status == "bad":
+												# tu mozna wywołać "garbage collectora" do tuneli
+												break
+										ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
+									else:
+										ret =  "bad_" + adr + "_" + remote_port
 						except IndexError:
 							ret = "Za malo argumentow."
 					print("D: ",cmd)

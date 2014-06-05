@@ -6,7 +6,7 @@ import threading
 import configmanager
 from socket import error
 import errno
-from ssh_tunnel import Tunnel
+from ssh_tunnel import Tunnel, TunnelException
 import ssh_common
 
 
@@ -89,11 +89,13 @@ class TunnelManager(object):
 			local_port = ssh_common.port_manager.get_port()
 			################
 			# w = Tunnel(local_port, host, user, passwd, remote_port, ssh_port, keypath)
-			w = Tunnel(local_port, host, remote_port, user, passwd)
-
-			self.lista.append(w)
-			# w.start()
-			return self.lista[index]
+			try:
+				w = Tunnel(local_port, host, remote_port, user, passwd)
+				self.lista.append(w)
+				return self.lista[index]
+			except TunnelException as e:
+				print(e)
+				return None
 		except TunnelManagerException as e:
 			raise TunnelManagerException(e)
 

@@ -30,9 +30,9 @@ class CmdManager(threading.Thread):
 	def run(self):
 		self.open_socket()
 		
-		permament_checker = PermTunnelChecker()
-		permament_checker.start()
-		
+		self.permament_checker = PermTunnelChecker()
+		self.permament_checker.start()
+
 		running = 1
 		
 		while running:
@@ -45,10 +45,11 @@ class CmdManager(threading.Thread):
 					print("create")
 					c = CmdReceiver(connection[0], connection[1])
 					print("start")
+					self.threads.append(c)
 					c.start();
 		self.server.close()
-		permament_checker.running = false
-		permament_checker.join()
+		self.permament_checker.running = false
+
 		for c in self.threads:
 			c.join()
 
@@ -58,7 +59,7 @@ class PermTunnelChecker(threading.Thread):
 	def run(self):
 		self.running = True
 		while self.running:
-			print("test")
+			print("checking permament tunnels...")
 			for t in ssh_common.permament_tunnel_manager.lista:
 				t.is_alive()
 				if t.status == "bad":
