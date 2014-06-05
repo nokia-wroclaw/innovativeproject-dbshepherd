@@ -1,0 +1,37 @@
+ rasp:
+  connection:
+   adress: kax-gate.noip.me
+   type: ssh
+   sshport: 443
+   localport: 1234
+   remoteport: 5432
+   user: nsn
+   passwd: nsnshepherd
+  databases:
+   pgBase_test:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+   pgBasex:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+
+ rasp2:
+  connection:
+   adress: kax-gate.noip.me
+   type: ssh
+   sshport: 22
+   localport: 1234
+   remoteport: 443
+   user: nsn
+   passwd: nsnshepherd
+  databases:
+   pgBase_test:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd
+   pgBasex:
+    name: dbshepherd_local
+    user: dbshepherd
+    passwd: dbshepherd

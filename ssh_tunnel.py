@@ -83,6 +83,8 @@ class Tunnel():
 		self.remote_host = remote_host
 		self.remote_port = remote_port
 		self.local_port = local_port
+		self.passwd = passwd
+		self.user_name = user_name
 		try:
 			self.client.connect(remote_host, username=user_name, password=passwd)
 			self.th = TunnelThread(local_port, remote_host, remote_port, self.client)
@@ -90,6 +92,7 @@ class Tunnel():
 			self.status = 'ok'
 		except:
 			self.status = 'bad'
+
 	def is_alive(self):
 		try:
 			chan = self.client.get_transport().open_session()
@@ -97,11 +100,23 @@ class Tunnel():
 		except Exception as e:
 			self.status = "bad"
 
+	def restart(self):
+		self.stop()
+		self.__init__(self.local_port, self.remote_host, self.remote_port, self.user_name, self.passwd)
+
 	def stop(self):
 		if self.th != None:
 			self.th.stop()
 
-# t = Tunnel('localhost', 1234, 'antivps.pl', 5432, 'dbshepherd', 'dbshepherd')
+# t = Tunnel(1234, 'antivps.pl', 5432, 'dbshepherd', 'dbshepherd')
+# import time
+# time.sleep(20)
+# t.restart()
+# print("Test")
+# time.sleep(60)
+# print("stop")
+# t.stop()
+
 # t2 = Tunnel('localhost', 1235, 'kax-gate.noip.me', 443, 'nsn', 'nsnshepherd')
 
     

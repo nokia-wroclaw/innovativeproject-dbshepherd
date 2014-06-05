@@ -51,15 +51,16 @@ class CmdManager(threading.Thread):
 		permament_checker.join()
 		for c in self.threads:
 			c.join()
+
 class PermTunnelChecker(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
 	def run(self):
-	self.running = True
+		self.running = True
 		while self.running:
 			print("test")
 			for t in ssh_common.permament_tunnel_manager.lista:
 				t.is_alive()
 				if t.status == "bad":
-					print("wznawiam")
+					t.restart()
 			sleep(60)
