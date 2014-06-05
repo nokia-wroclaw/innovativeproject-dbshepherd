@@ -8,7 +8,7 @@ class ConfigManager:
         except FileNotFoundError:
             raise ConfigManagerError("No file under this path")
         self.loader = yaml.load(self.yamlfile)
-
+        self.yamlfile.close()
     def get(self, what):
         try:
             return self.loader[what]

@@ -77,7 +77,7 @@ class TunnelThread(threading.Thread):
 
 
 class Tunnel():
-	def __init__(self, local_port, remote_host, remote_port, user_name, passwd):
+	def __init__(self, local_port, remote_host, remote_port, user_name, passwd, ssh_port):
 		self.client = paramiko.SSHClient()
 		self.client.load_system_host_keys()
 		self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -91,7 +91,7 @@ class Tunnel():
 		self.user_name = user_name
 		try:
 			print("Connecting to", remote_host)
-			self.client.connect(remote_host, username=user_name, password=passwd)
+			self.client.connect(remote_host, username=user_name, password=passwd, port=ssh_port)
 			self.th = TunnelThread(local_port, remote_host, remote_port, self.client)
 			self.th.start()
 			self.status = 'ok'

@@ -90,7 +90,7 @@ class TunnelManager(object):
 			################
 			# w = Tunnel(local_port, host, user, passwd, remote_port, ssh_port, keypath)
 			try:
-				w = Tunnel(local_port, host, remote_port, user, passwd)
+				w = Tunnel(local_port, host, remote_port, user, passwd,ssh_port)
 				self.lista.append(w)
 				return self.lista[index]
 			except TunnelException as e:
@@ -98,20 +98,6 @@ class TunnelManager(object):
 				return None
 		except TunnelManagerException as e:
 			raise TunnelManagerException(e)
-
-	def connectToAlias(self, args):
-		yaml = configmanager.ConfigManager("conf.yaml")
-		connection = yaml.get(args.split()[0])['connection']
-		try:
-			passwd = connection['passwd']
-		except KeyError:
-			passwd = input("Password: ")
-		try:
-			self.connect(connection['localport'], connection['adress'], connection['user'], "",
-						 connection['remoteport'], connection['sshport'], args.split()[1])
-		except IndexError:
-			self.connect(connection['localport'], connection['adress'], connection['user'], passwd,
-						 connection['remoteport'], connection['sshport'])
 
 	def is_alive(self, host_name, remote_port):
 		for tunnel in self.lista:
@@ -126,7 +112,6 @@ class TunnelManager(object):
 		return None
 
 	def clean(self):
-
 		print("clean")
 		print(len(self.lista))
 		for tunnel in self.lista:

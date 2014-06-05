@@ -26,11 +26,10 @@ class SShTest(unittest.TestCase):
 	def test_invalid_yaml_connection(self):
 		conf = ConfigManager("config/lista_test.yaml")
 		connection =  conf.get("InvalidConnection")["connection"]
-		cmd = None
 		try:
 			cmd = connect_command_builder(connection,"no")
 		except KeyError:
-			pass
+			cmd = None
 		self.assertIsNone(cmd)
 	
 	def test_invalid_ssh_port(self):
@@ -76,4 +75,4 @@ if __name__ == '__main__':
 	except ConnectionRefusedError:
 		print("is ssh-shepherd running?")
 			
-	unittest.main()
+	unittest.main(verbosity=2)
