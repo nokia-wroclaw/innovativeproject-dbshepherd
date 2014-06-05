@@ -92,18 +92,56 @@ class Postgres(ModuleCore):
 		(values, values_num) = self.parse_args(args, 1, 2)
 		if len(values) == 2: #Jeżeli 2 argumenty (na wybranym konfigu)
 			conf_args = values[0].split('.')
+
 			if len(conf_args)== 3:
 				self.dump(conf_args[0], conf_args[1], conf_args[2], values[1])
-				pass
 			elif len(conf_args) == 2:
-				pass
+				conf = ConfigManager("config/" + conf_args[0] + ".yaml").get(conf_args[1])
+				databases = conf["databases"]  #konfiguracje baz danych
+				print(">Dumping databases:")
+				for db in databases:
+					print("\t" + db)
+					self.dump(conf_args[0], conf_args[1], db, values[1])
 			elif len(conf_args) == 1:
-				pass
-
-
-			pass
+				servers = ConfigManager("config/" + conf_args[0] + ".yaml").get_all()
+				print(">Dumping databases:")
+				for srv in servers:
+					print("\t" + srv)
+					databases = servers[srv]["databases"]
+					for db in databases:
+						print("\t\t" + db)
+						self.dump(conf_args[0], srv, db, values[1])
 		elif len(values) == 1: #jeden argument (na wszystkich konfigach)
-			pass
+			files = []
+			for file in os.listdir("./config"):
+				if file.endswith(".yaml"):
+					files.append(file.split(".")[0])
+
+			print("Dump:")
+			for file in files:
+				print(file)
+
+			ans = input("Are you sure? [NO/yes/info]: ")
+			if ans == "yes":
+				for file in files:
+					servers = ConfigManager("config/" + file + ".yaml").get_all()
+					for srv in servers:
+						print("\t" + srv)
+						databases = servers[srv]["databases"]
+						for db in databases:
+							print("\t\t" + db)
+							self.dump(file, srv, db, values[0])
+			elif ans == "info":
+				for file in files:
+					servers = ConfigManager("config/" + file + ".yaml").get_all()
+					for srv in servers:
+						print("\t" + srv)
+						databases = servers[srv]["databases"]
+						for db in databases:
+							print("\t\t" + db)
+			else:
+				print("aborted")
+
 
 		# date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 		# self.dump('192.168.0.100','shepherd', 'test', 'test', 'shepherd', 'dbshepherd', values[1]+'_'+date+'.sql')
