@@ -76,7 +76,7 @@ class CmdReceiver(threading.Thread):
                                     tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr,remote)
                                 else:
                                     tunnel = self.t_manager.connect(adr, usr, passwd, int(remote), int(ssh)) #, keypath="")
-                                    for num in range(0,20):
+                                    for num in range(0,3):
                                         sleep(1)
                                         #print(tunnel.status)
                                         print("Waiting...")
@@ -84,7 +84,7 @@ class CmdReceiver(threading.Thread):
                                             break
                                         if tunnel.status == "bad":
                                             break
-                                ret =  tunnel.status + "_" + tunnel.host + "_" + str(tunnel.local)
+                                ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
                             elif permament == "yes":
                                 if self.t_manager.is_alive(adr,remote):
                                     ret = "exist-non-permament"
