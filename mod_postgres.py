@@ -6,6 +6,7 @@ import psycopg2
 import os
 import paramiko
 import datetime
+import subprocess
 
 class Postgres(ModuleCore):
 	def __init__(self, completekey='tab', stdin=None, stdout=None):
@@ -60,32 +61,41 @@ class Postgres(ModuleCore):
 		conn = cnf["connection"]
 		database = cnf["databases"][base_name]
 
-		client = paramiko.SSHClient()
-		client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		client.connect(conn["adress"], username=conn["user"] ,password=conn["passwd"], port=22)
-		channel = client.get_transport().open_session()
-
-		dumper = "pg_dump -U %s -d %s"
 		os.putenv('PGPASSWORD', database["passwd"])
-		command = dumper % (database["name"], database["user"])
 
-		channel.exec_command(command)
+		if conn["type"] == "ssh": #Dla połączeń ssh
+			dumper = "pg_dump -U %s -d %s -C --column-inserts"
+			command = dumper % (database["user"], database["name"])
+			client = paramiko.SSHClient()
+			client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+			client.connect(conn["adress"], username=conn["user"] ,password=conn["passwd"], port=22)
+			channel = client.get_transport().open_session()
 
-		stderr = b''
-		cmd = channel.recv_stderr(256)
-		while cmd != b'':
-			stderr += cmd
+
+			channel.exec_command(command)
+
+			stderr = b''
 			cmd = channel.recv_stderr(256)
+			while cmd != b'':
+				stderr += cmd
+				cmd = channel.recv_stderr(256)
 
-		stdout = b''
-		cmd = channel.recv(256)
-		while cmd != b'':
-			stdout += cmd
+			stdout = b''
 			cmd = channel.recv(256)
+			while cmd != b'':
+				stdout += cmd
+				cmd = channel.recv(256)
+			file = open(dump_file+'_'+file_name+'_'+serv_name+'_'+base_name+'_'+date+'.sql', 'w')
+			file.write(stdout.decode())
+			file.close()
 
-		file = open(dump_file+'_'+file_name+'_'+serv_name+'_'+base_name+'_'+date+'.sql', 'w')
-		file.write(stdout.decode())
-		file.close()
+		elif conn["type"] == "direct": #Jeżeli nie ma ssh
+			dumper = """ "./bin/pg_dump.exe" -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
+			dump_file_name = dump_file+'_'+file_name+'_'+serv_name+'_'+base_name+'_'+date+'.sql'
+			command = dumper % (database["user"], database["name"], conn["adress"], conn["remoteport"], dump_file_name)
+			subprocess.call(command,shell = True)
+
+
 
 	def do_dump(self, args):
 		"""dump <base> <file_name>"""

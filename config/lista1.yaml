@@ -15,6 +15,20 @@
     name: dbshepherd_local
     user: dbshepherd
     passwd: dbshepherd
+ nsn_local:
+  connection:
+   adress: antivps.pl
+   type: direct
+   sshport: 22
+   remoteport: 5432
+   user: dbshepherd
+   passwd: dbshepherd
+  databases:
+   baseHost:
+    name: dbshepherd_host
+    user: dbshepherd
+    passwd: dbshepherd
+
  seba:
   connection:
    adress: 192.168.0.100
