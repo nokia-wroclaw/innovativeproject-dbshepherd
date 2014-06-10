@@ -47,7 +47,8 @@ class YamlTest(unittest.TestCase):
 						connection = yaml.get(server)["connection"]
 						test = connection["adress"]
 						test = connection["type"]
-						test = connection["sshport"]
+						if test == "ssh":
+							test = connection["sshport"]
 						test = connection["remoteport"]
 						test = connection["user"]
 						test = connection["passwd"]

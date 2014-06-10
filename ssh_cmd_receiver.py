@@ -69,6 +69,7 @@ class CmdReceiver(threading.Thread):
 							permament = cmd[5]
 
 							tunnel = None
+							# If you wish to create non permanent tunnel
 							if permament == "no":
 								if self.t_manager.is_alive(adr,remote_port):
 									tunnel = self.t_manager.get_tunnel(adr,remote_port)
@@ -113,6 +114,10 @@ class CmdReceiver(threading.Thread):
 										ret =  "bad_" + adr + "_" + remote_port
 						except IndexError:
 							ret = "Za malo argumentow."
+					
+					if ret == "Unknown Error" and tunnel != None:
+						ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
+					
 					print("D: ",cmd)
 					print(ret)
 					self.client.send(ret.encode("utf-8"))
