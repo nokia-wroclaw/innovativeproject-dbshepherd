@@ -1,28 +1,28 @@
+import os
 import unittest
-import sys
-sys.path.append("..")
 from mod_postgres import Postgres
 
+test1_dump_file = "test1_dump"
 
 class PostgresTest(unittest.TestCase):
-    pgr = Postgres();
-    pgr.do_raw_query('test.yaml test.test "DROP TABLE if exists test_table;"')
-    pgr.do_raw_query('test.yaml test.test "CREATE TABLE test_table(a int, b int, c varchar(20));"')
 
-    def test_insert(self):
-        self.pgr.do_raw_query('test.yaml test.test "INSERT INTO test_table VALUES(1, 2, \'x\');"')
-        self.pgr.do_raw_query('test.yaml test.test "INSERT INTO test_table VALUES(3, 4, \'v\');"')
-        test = self.pgr.do_raw_query('test.yaml test.test "SELECT * FROM test_table;"')
-
-        self.assertEqual(test[0][0], 1)
-        self.assertEqual(test[0][1], 2)
-        self.assertEqual(test[0][2], 'x')
-
-        self.assertEqual(test[1][0], 3)
-        self.assertEqual(test[1][1], 4)
-        self.assertEqual(test[1][2], 'v')
-
-        self.pgr.do_raw_query('test.yaml test.test "DROP TABLE IF EXISTS test_table;"')
-
+	def test1_dump(self):
+		#if exists remove test1_dump* file
+		for file in os.listdir("dump"):
+					if file.startswith("test1_dump"):
+						if os.path.exists("dump/" + file.title()):
+							os.remove("dump/" + file.title())
+		
+		pg = Postgres()
+		test = pg.do_dump("lista_test.ShouldBeOK.pgBase_test " + test1_dump_file)
+		#test if file exists
+		counter = 0
+		for file in os.listdir("dump"):
+					if file.startswith("test1_dump"):
+						counter += 1
+						if os.path.exists("dump/" + file.title()):
+							os.remove("dump/" + file.title())
+		self.assertNotEqual(counter,0)
+	
 if __name__ == '__main__':
-    unittest.main()
+	unittest.main(verbosity=2)#
