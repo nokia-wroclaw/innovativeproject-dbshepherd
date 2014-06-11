@@ -8,6 +8,16 @@ def connect_command_builder(connection, perm):
 		command = connection["adress"] + "_" + connection["user"]+ "_" + \
 					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
 		return command
+		
+def create_command(server,perm):
+	conf = ConfigManager("config/lista_test.yaml")
+	connection =  conf.get(server)["connection"]
+	try:
+		cmd = connect_command_builder(connection,perm)
+	except KeyError:
+		cmd = None
+	return cmd
+	
 def send_command(command):
 	try:
 		conn.send(command)
@@ -20,10 +30,10 @@ def send_command(command):
 
 class SShTest(unittest.TestCase):
 
-	def test_connection_to_ssh_shepherd(self):
+	def test1_connection_to_ssh_shepherd(self):
 		self.assertIsNotNone(conn)
 	
-	def test_invalid_yaml_connection(self):
+	def test2_invalid_yaml_connection(self):
 		conf = ConfigManager("config/lista_test.yaml")
 		connection =  conf.get("InvalidConnection")["connection"]
 		try:
@@ -32,42 +42,79 @@ class SShTest(unittest.TestCase):
 			cmd = None
 		self.assertIsNone(cmd)
 	
-	def test_invalid_ssh_port(self):
-		conf = ConfigManager("config/lista_test.yaml")
-		connection =  conf.get("InvalidSSHPort")["connection"]
-		try:
-			cmd = connect_command_builder(connection,"no")
-		except KeyError as e:
-			self.fail("KeyError" + e)
-		
+	def test8_invalid_ssh_port(self):
+		cmd =  create_command("InvalidSSHPort","no")
 		ans = send_command(cmd)
 		status = ans.split("_")[0]
 		self.assertEqual("bad", status)
 	
-	def test_invalid_user_name(self):
-		conf = ConfigManager("config/lista_test.yaml")
-		connection =  conf.get("InvalidUsername")["connection"]
-		try:
-			cmd = connect_command_builder(connection,"no")
-		except KeyError as e:
-			self.fail("KeyError" + e)
-		
+	def test7_invalid_user_name(self):
+		cmd =  create_command("InvalidUsername","no")
 		ans = send_command(cmd)
 		status = ans.split("_")[0]
 		self.assertEqual("bad", status)
 	
-	def test_should_be_ok(self):
+	def test3_should_be_ok(self):
+		cmd =  create_command("ShouldBeOK","no")
+		ans = send_command(cmd)
+		status = ans.split("_")[0]
+		self.assertEqual("ok", status)
+	
+	def test6_create_permanent(self):
+		conf = ConfigManager("config/lista_test.yaml")
+		connection =  conf.get("ShouldBeOK")["connection"]
+		try:
+			cmd = connect_command_builder(connection,"yes")
+		except KeyError as e:
+			self.fail("KeyError" + e)
+	
+		ans = send_command(cmd)
+		status = ans.split("_")[0]
+		if status != "ok":
+			self.fail("Unable to create tunnel")
+		
+		
+		to_find = connection["adress"] + ":" + str(connection["remoteport"])
+		self.assertEqual(-1, ans.find(to_find,ans.find("perm")))
+		
+		dc = cmd.split("_")[0] + ":" + cmd.split("_")[4]		
+		ans = send_command("clean;" + dc)
+		
+		
+	def test5_disconnect(self):
 		conf = ConfigManager("config/lista_test.yaml")
 		connection =  conf.get("ShouldBeOK")["connection"]
 		try:
 			cmd = connect_command_builder(connection,"no")
 		except KeyError as e:
 			self.fail("KeyError" + e)
-		
 		ans = send_command(cmd)
 		status = ans.split("_")[0]
-		self.assertEqual("ok", status)
+		if status != "ok":
+			self.fail("Unable to create tunnel")
+		dc = cmd.split("_")[0] + ":" + cmd.split("_")[4]		
+		ans = send_command("clean;" + dc)
+		to_find = connection["adress"] + ":" + str(connection["remoteport"])
+		self.assertEqual(-1, ans.find(to_find))
+		
 	
+	def test4_list_command(self):
+		conf = ConfigManager("config/lista_test.yaml")
+		connection =  conf.get("ShouldBeOK")["connection"]
+		try:
+			cmd = connect_command_builder(connection,"no")
+		except KeyError as e:
+			self.fail("KeyError" + e)
+		ans = send_command(cmd)
+		status = ans.split("_")[0]
+		
+		if status != "ok":
+			self.fail("Unable to create tunnel")
+		
+		ans = send_command("list")
+		to_find = connection["adress"] + ":" + str(connection["remoteport"])
+		self.assertNotEqual(-1, ans.find(to_find))
+		
 if __name__ == '__main__':
 	try:
 		conn = connection.Connection()

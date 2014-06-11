@@ -17,7 +17,6 @@ def encrypt(string):
 	#init
 	rndfile = Random.new()
 
-	
 	#read file####
 	to_enc = string.encode("UTF-8")
 	#.############
@@ -39,6 +38,7 @@ def encrypt(string):
 	
 	passwd = getpass("Input password: ")
 	hash = SHA256.new()
+
 	hash.update(passwd.encode("UTF-8"))
 	key = hash.digest()
 	rnd =  rndfile.read(16)
@@ -58,9 +58,6 @@ def decrypt(string, padding, IV):
 	return decrypted[:len(decrypted)-padding]
 
 	#docelowo tylko to importujemy
-def getpass(alias):
-	pass
-
 
 #Szyfrujemy yamla
 ciphertext, padding, rnd = encrypt(aes_yaml)

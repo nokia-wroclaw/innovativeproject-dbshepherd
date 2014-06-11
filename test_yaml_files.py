@@ -57,7 +57,27 @@ class YamlTest(unittest.TestCase):
 	
 			except ConfigManagerError:
 				self.fail(file)	
+	def test3_have_valid_databases(self):
+		lists = []
+		for file in os.listdir("config"):
+					if file.endswith(".yaml"):
+						list_name = file.title()[:file.rfind(".")]
+						if list_name != "Lista_Test":
+							lists.append(list_name)
+		for file in lists:
+			try:
+				yaml = ConfigManager("config/"+file+".yaml")
+				for server in yaml.loader:
+					try:
+						databases = yaml.get(server)["databases"]
+						for db in databases:
+							test = databases[db]["name"]
+							test = databases[db]["user"]
+							test = databases[db]["passwd"]	
+					except KeyError as e:
+						self.fail(str(e) + " in " + server + "(" + file + ")")
+			except ConfigManagerError:
+				self.fail(file)	
 	
-				
 if __name__ == '__main__':
 	unittest.main(verbosity=2)#
