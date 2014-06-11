@@ -56,11 +56,6 @@ class Postgres(ModuleCore):
 			pass
 
 	def local_dump(self, db_name, db_user, db_pass, host, port, file_name):
-		# os.putenv('PGPASSWORD', db_pass)
-		# dumper = """ "./bin/pg_dump.exe" -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
-		# command = dumper % (db_user, db_name, host, port, file_name)
-		# call(command, shell=True)
-
 		dumper = """./bin/pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
 		command = dumper % (db_user, db_name, host, port, file_name)
 
@@ -217,6 +212,52 @@ class Postgres(ModuleCore):
 		except ParseArgsException as e:
 			print("Incorrect number of arguments.")
 		except Exception as e:
+			print(e)
+
+	def local_restore(self, db_name, db_user, db_pass, host, port, file_name):
+		dumper = """./bin/pg_restore.exe -U %s -h %s -p %s -f %s -C"""
+		command = dumper % (db_user, host, port, file_name)
+
+		os.putenv('PGPASSWORD', db_pass)
+		try:
+			proc = Popen(command, stdout=PIPE, stderr=PIPE)
+		except FileNotFoundError:
+			raise PostgressError("\t\tERROR: pg_dump not found")
+
+		stderr = b'';
+		for line in proc.stderr:
+			stderr += line
+
+		if stderr != b'':
+			raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
+
+	def restore(self, file_name, serv_name, base_name, dump_file):
+		cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
+		conn = cnf["connection"]
+		database = cnf["databases"][base_name]
+
+		os.putenv('PGPASSWORD', database["passwd"])
+
+		if conn["type"] == "ssh": #Dla połączeń ssh
+			pass
+		elif conn["type"] == "direct": #Jeżeli nie ma ssh
+			self.local_restore(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], dump_file)
+			pass
+		return True
+
+	def do_restore(self, args):
+		try:
+			(values, values_num) = self.parse_args(args, 2)
+			if len(values) == 2: #Jeżeli 2 argumenty (na wybranym konfigu)
+				conf_args = values[0].split('.')
+				if len(conf_args)== 3:
+					self.restore(conf_args[0], conf_args[1], conf_args[2], values[1])
+				else:
+					print('ERROR!!!!!')
+
+
+		except Exception as e:
+			print(type(e))
 			print(e)
 
 	def do_query(self, args):

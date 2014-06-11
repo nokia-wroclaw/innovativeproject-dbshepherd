@@ -22,6 +22,7 @@ class ModuleCore(cmd.Cmd):
 			raise ParseArgsException("Nieodpowiednia ilość argumentów")
 
 	def do_warn(self, args):
+		"""warn <on/off>"""
 		try:
 			(values, values_num) = self.parse_args(args, 0, 1)
 			if values_num == 1:
