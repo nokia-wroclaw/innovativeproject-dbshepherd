@@ -6,12 +6,13 @@ import psycopg2
 import os
 import paramiko
 import datetime
-from subprocess import Popen, PIPE, call
+from subprocess import Popen, PIPE
 
 class Postgres(ModuleCore):
 	def __init__(self, completekey='tab', stdin=None, stdout=None):
 		super().__init__()
 		self.set_name('Postgres')
+		self.warn = False
 
 	def query(self, file_name, serv_name, base_name, db_query):
 		cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
@@ -55,16 +56,27 @@ class Postgres(ModuleCore):
 			pass
 
 	def local_dump(self, db_name, db_user, db_pass, host, port, file_name):
-		os.putenv('PGPASSWORD', db_pass)
-		dumper = """ "./bin/pg_dump.exe" -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
-		command = dumper % (db_user, db_name, host, port, file_name)
-		call(command, shell=True)
+		# os.putenv('PGPASSWORD', db_pass)
+		# dumper = """ "./bin/pg_dump.exe" -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
+		# command = dumper % (db_user, db_name, host, port, file_name)
+		# call(command, shell=True)
 
-		# program = "./bin/pg_dump.exe"
-		# arg = "-U %s -d %s -h %s -p %s -f %s -C --column-inserts"
-		# p = Popen([program, arg % (db_user, db_name, host, port, file_name)], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-		# output, err = p.communicate(str.encode(db_pass))
-		# print(output, err)
+		dumper = """./bin/pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
+		command = dumper % (db_user, db_name, host, port, file_name)
+
+		os.putenv('PGPASSWORD', db_pass)
+		try:
+			proc = Popen(command, stdout=PIPE, stderr=PIPE)
+		except FileNotFoundError:
+			raise PostgressError("\t\tERROR: pg_dump not found")
+
+		stderr = b'';
+		for line in proc.stderr:
+			stderr += line
+
+		if stderr != b'':
+			raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
+
 
 
 
@@ -105,7 +117,8 @@ class Postgres(ModuleCore):
 					file.write(stdout.decode())
 					file.close()
 				else:
-					print("\t\tWARNING: pg_dump not exist on server\n\t\t\t attempt to use the local pg_dump")
+					if self.warn == True:
+						print('\t\tWARNING: '+stderr.decode('iso_8859_2', 'ignore')+'\n\t\t\tattempt to use the local pg_dump')
 
 					cmd = conn["adress"] + "_" + conn["user"] + "_" + conn["passwd"] + "_" + str(conn["sshport"]) + "_" + str(conn["remoteport"]) + "_no"
 					common.conn.send(cmd)
@@ -115,25 +128,33 @@ class Postgres(ModuleCore):
 
 					if ans.split('_')[0] == 'ok':
 						self.local_dump(database["name"], database["user"], database["passwd"], '127.0.0.1', int(ans.split("_")[2]), dump_file_name)
-						print("\t\tSUCCESS\n")
+						if self.warn == True:
+							print("\t\tSUCCESS\n")
 					else:
-						print("\t\tFAIL\n")
+						if self.warn == True:
+							print("\t\tFAIL\n")
 
 
 			elif conn["type"] == "direct": #Jeżeli nie ma ssh
 				self.local_dump(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], dump_file_name)
 
-
-
-
 		except ConnectionRefusedError:
 			print("\t\tERROR: Connection Refused by host\n")
+			return False
+
 		except TimeoutError:
 			print("\t\tERROR: Connection timeout\n")
+			return False
+
+		except PostgressError as e:
+			print(e)
 
 		except Exception as e:
 			print(type(e))
 			print(e)
+			return False
+
+		return True
 
 
 
@@ -196,9 +217,6 @@ class Postgres(ModuleCore):
 			print("Incorrect number of arguments.")
 		except Exception as e:
 			print(e)
-
-		# date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-		# self.dump('192.168.0.100','shepherd', 'test', 'test', 'shepherd', 'dbshepherd', values[1]+'_'+date+'.sql')
 
 	def do_query(self, args):
 		try:

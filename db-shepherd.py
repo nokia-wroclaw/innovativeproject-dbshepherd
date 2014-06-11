@@ -5,6 +5,7 @@ from os.path import splitext
 from ssh_tunnelmanager import TunnelManager
 import os
 import common
+from mod_core import ParseArgsException, ModuleCore
 
 conn = common.conn
 manager = TunnelManager()
@@ -19,12 +20,12 @@ def send_command(command):
 	except AttributeError as e:
 		print (e)
 
-def set_module(module):
+def set_module(module, warn):
 	try:
 		if len(module) > 0:
 			module_src = splitext(ConfigManager("modules.yaml").get(module)['source'])[0]
 			__import__(module_src)
-			exec("modules['{0}'].{1}().cmdloop()".format(module_src,module))
+			exec("mod = modules['{0}'].{1}()\nmod.warn={2}\nmod.cmdloop()".format(module_src,module, warn))
 		else:
 			print("Musisz podać nazwę modułu!")
 	except ImportError as e:
@@ -33,9 +34,10 @@ def set_module(module):
 		print("Can't load [" + module + "] check modules.yaml")
 
 		
-class Shell(cmd.Cmd):
+class Shell(ModuleCore):
 	def __init__(self):
 		super().__init__()
+		self.warn = False
 
 	prompt = "#>"
 	modules = []
@@ -53,7 +55,7 @@ class Shell(cmd.Cmd):
 
 	def do_module(self, module):
 		"Load module\n\tUsage:\t module <Module>\t(load and use Module)"
-		set_module(module)
+		set_module(module, self.warn)
 
 	def do_connect(self, arg):
 		"""Create ssh tunnels\n\tUsage:\tconnect\t\t\t(connect using all server lists)
