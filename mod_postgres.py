@@ -148,6 +148,7 @@ class Postgres(ModuleCore):
 
 		except PostgressError as e:
 			print(e)
+			return False
 
 		except Exception as e:
 			print(type(e))
