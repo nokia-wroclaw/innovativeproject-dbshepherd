@@ -128,6 +128,8 @@ class Postgres(ModuleCore):
 
 		except ConnectionRefusedError:
 			print("\t\tERROR: Connection Refused by host\n")
+		except TimeoutError:
+			print("\t\tERROR: Connection timeout\n")
 
 		except Exception as e:
 			print(type(e))
