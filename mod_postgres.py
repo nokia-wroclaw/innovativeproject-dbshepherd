@@ -63,7 +63,7 @@ class Postgres(ModuleCore):
 		try:
 			proc = Popen(command, stdout=PIPE, stderr=PIPE)
 		except FileNotFoundError:
-			raise PostgressError("\t\tERROR: pg_dump not found")
+			raise PostgressError(" ERROR: pg_dump not found")
 
 		stderr = b'';
 		for line in proc.stderr:
@@ -113,8 +113,8 @@ class Postgres(ModuleCore):
 					file.close()
 				else:
 					if self.warn == True:
-						print('\t\tWARNING: '+stderr.decode('iso_8859_2', 'ignore')+'\n\t\t\tattempt to use the local pg_dump')
-
+						print('--------------------')
+						print('WARNING: '+stderr.decode('iso_8859_2', 'ignore')+'attempt to use the local pg_dump')
 					cmd = conn["adress"] + "_" + conn["user"] + "_" + conn["passwd"] + "_" + str(conn["sshport"]) + "_" + str(conn["remoteport"]) + "_no"
 					common.conn.send(cmd)
 					ans = None
@@ -124,25 +124,46 @@ class Postgres(ModuleCore):
 					if ans.split('_')[0] == 'ok':
 						self.local_dump(database["name"], database["user"], database["passwd"], '127.0.0.1', int(ans.split("_")[2]), dump_file_name)
 						if self.warn == True:
-							print("\t\tSUCCESS\n")
+							print('SUCCESS')
+							print('--------------------')
 					else:
-						if self.warn == True:
-							print("\t\tFAIL\n")
+						if self.warn != True:
+							print('--------------------')
+						print('FAIL')
+						print('--------------------')
 
 
 			elif conn["type"] == "direct": #Jeżeli nie ma ssh
 				self.local_dump(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], dump_file_name)
 
 		except ConnectionRefusedError:
-			print("\t\tERROR: Connection Refused by host\n")
+			print('--------------------')
+			print('ERROR: Connection Refused by host')
+			print('--------------------')
 			return False
 
 		except TimeoutError:
-			print("\t\tERROR: Connection timeout\n")
+			print('--------------------')
+			print('ERROR: Connection timeout')
+			print('--------------------')
+			return False
+
+		except paramiko.ssh_exception.AuthenticationException:
+			print('--------------------')
+			print('ERROR: Authentication problem')
+			print('--------------------')
+			return False
+
+		except KeyError as e:
+			print('--------------------')
+			print('ERROR: Unable to find key:',e)
+			print('--------------------')
 			return False
 
 		except PostgressError as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 			return False
 
 		except Exception as e:
@@ -168,16 +189,16 @@ class Postgres(ModuleCore):
 					databases = conf["databases"]  #konfiguracje baz danych
 					print(">Dumping databases:")
 					for db in databases:
-						print("\t" + db)
+						print("+-", db)
 						self.dump(conf_args[0], conf_args[1], db, values[1])
 				elif len(conf_args) == 1:
 					servers = ConfigManager("config/" + conf_args[0] + ".yaml").get_all()
 					print(">Dumping databases:")
 					for srv in servers:
-						print("\t" + srv)
+						print("+-", srv)
 						databases = servers[srv]["databases"]
 						for db in databases:
-							print("\t\t" + db)
+							print("|  +-", db)
 							self.dump(conf_args[0], srv, db, values[1])
 			elif len(values) == 1: #jeden argument (na wszystkich konfigach)
 				files = []
@@ -187,26 +208,28 @@ class Postgres(ModuleCore):
 
 				print("Dump:")
 				for file in files:
-					print(file)
+					print('+-', file)
 
 				ans = input("Are you sure? [NO/yes/info]: ")
 				if ans == "yes":
 					for file in files:
+						print('+-', file)
 						servers = ConfigManager("config/" + file + ".yaml").get_all()
 						for srv in servers:
-							print("\t" + srv)
+							print("|  +-", srv)
 							databases = servers[srv]["databases"]
 							for db in databases:
-								print("\t\t" + db)
+								print("|  |  +-", db)
 								self.dump(file, srv, db, values[0])
 				elif ans == "info":
 					for file in files:
+						print('+-', file)
 						servers = ConfigManager("config/" + file + ".yaml").get_all()
 						for srv in servers:
-							print("\t" + srv)
+							print("|  +-", srv)
 							databases = servers[srv]["databases"]
 							for db in databases:
-								print("\t\t" + db)
+								print("|  |  +-", db)
 				else:
 					print("aborted")
 		except ParseArgsException as e:
@@ -222,7 +245,7 @@ class Postgres(ModuleCore):
 		try:
 			proc = Popen(command, stdout=PIPE, stderr=PIPE)
 		except FileNotFoundError:
-			raise PostgressError("\t\tERROR: pg_dump not found")
+			raise PostgressError("|  |  !- ERROR: pg_dump not found")
 
 		stderr = b'';
 		for line in proc.stderr:
