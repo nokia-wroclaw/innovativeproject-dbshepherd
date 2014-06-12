@@ -24,5 +24,9 @@ class PostgresTest(unittest.TestCase):
 							os.remove("dump/" + file.title())
 		self.assertNotEqual(counter,0)
 	
+	def test2_query(self):
+		pg = Postgres()
+		pg.do_query("lista1.nsn \"select * from shepherd\"")
+		
 if __name__ == '__main__':
 	unittest.main(verbosity=2)#
