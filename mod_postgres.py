@@ -14,6 +14,80 @@ class Postgres(ModuleCore):
 		self.set_name('Postgres')
 		self.warn = False
 
+	def do_query(self, args):
+		try:
+			(values, values_num) = self.parse_args(args, 1, 2)
+
+			if values_num == 2:  #wyróżniamy do czego chcemy się połączyć
+				conn_params = values[0].split('.')
+				if len(conn_params) == 3:  #połącz do konkretnej bazy na liście
+					self.query(conn_params[0], conn_params[1], conn_params[2], values[1])
+
+				elif len(conn_params) == 2:  #połącz do konkretnego serwera na liście
+					conf = ConfigManager("config/" + conn_params[0] + ".yaml").get(conn_params[1])
+					databases = conf["databases"]  #konfiguracje baz danych
+					# print(dbs)
+					for db in databases:
+						print('[', db, ']')
+						self.query(conn_params[0], conn_params[1], db, values[1])
+						print()
+
+				elif len(conn_params) == 1:  #połącz do wszystkiego na liście
+					servers = ConfigManager("config/" + conn_params[0] + ".yaml").get_all()
+					for srv in servers:
+						databases = servers[srv]["databases"]
+						for db in databases:
+							print('[', srv, '->', db, ']')
+							self.query(conn_params[0], srv, db, values[1])
+							print()
+				else:
+					raise ParseArgsException("Niepoprawny parametr połączenia!")
+			elif values_num == 1:  #wykonujemy na wszystkich
+				files = []
+				for file in os.listdir("./config"):
+					if file.endswith(".yaml"):
+						files.append(file.split(".")[0])
+
+				print("Query to:")
+				for file in files:
+					print('+-',file)
+
+				ans = input("Are you sure? [NO/yes/info]: ")
+				if ans == "yes":
+					for file in files:
+						servers = ConfigManager("config/" + file + ".yaml").get_all()
+						for srv in servers:
+							databases = servers[srv]["databases"]
+							for db in databases:
+								print('[', file, '->', srv, '->', db, ']')
+								self.query(file, srv, db, values[0])
+								print()
+
+				elif ans == "info":
+					for file in files:
+						print('+-', file)
+						servers = ConfigManager("config/" + file + ".yaml").get_all()
+						for srv in servers:
+							print('|  +-', srv)
+							databases = servers[srv]["databases"]
+							for db in databases:
+								print('|  |  +-', db)
+				else:
+					print("aborted")
+
+		except ConfigManagerError as e:
+			print('--------------------')
+			print('ERROR:',e)
+			print('--------------------')
+		except ParseArgsException as e:
+			print(e)
+		except KeyError as e:
+			print('--------------------')
+			print('ERROR: Unable to find key:',e)
+			print('--------------------')
+			return False
+
+
 	def query(self, file_name, serv_name, base_name, db_query):
 		cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
 		conn = cnf["connection"]
@@ -32,23 +106,32 @@ class Postgres(ModuleCore):
 			if status == "ok":  #udało się utworzyć tunel
 				try:
 					pg_conn = psycopg2.connect(dbname=database["name"], user=database["user"], host=adr,
-											   password=database["passwd"], port=db_port)
+											password=database["passwd"], port=db_port)
 					pg_conn.autocommit = True;
 					cur = pg_conn.cursor()
 					cur.execute(db_query)
 
 					pt = from_db_cursor(cur)
-					if (pt != None):
-						print(pt)
+					print(pt)
+
 				except psycopg2.Error as e:
-					print('Error: ', e)
+					print('--------------------')
+					print('Error:', e, end='')
+					print('--------------------')
 				except psycopg2.Warning as w:
-					print('Warning: ', w)
+					print('--------------------')
+					print('Warning:', w, end='')
+					print('--------------------')
 				except psycopg2.InterfaceError as e:
-					print('Error: ', e)
+					print('--------------------')
+					print('Error:', e, end='')
+					print('--------------------')
 				except psycopg2.DatabaseError as e:
-					print('Error: ', e)
-			else:	#próba bezpośredniego połączonia
+					print('--------------------')
+					print('Error:', e, end='')
+					print('--------------------')
+			elif conn["type"] == "direct":	#próba bezpośredniego połączonia
+
 				pass
 
 			pass
@@ -282,76 +365,6 @@ class Postgres(ModuleCore):
 		except Exception as e:
 			print(type(e))
 			print(e)
-
-	def do_query(self, args):
-		try:
-			(values, values_num) = self.parse_args(args, 1, 2)
-
-			if values_num == 2:  #wyróżniamy do czego chcemy się połączyć
-				conn_params = values[0].split('.')
-				if len(conn_params) == 3:  #połącz do konkretnej bazy na liście
-					self.query(conn_params[0], conn_params[1], conn_params[2], values[1])
-
-				elif len(conn_params) == 2:  #połącz do konkretnego serwera na liście
-					conf = ConfigManager("config/" + conn_params[0] + ".yaml").get(conn_params[1])
-					databases = conf["databases"]  #konfiguracje baz danych
-					# print(dbs)
-					for db in databases:
-						print("[" + db + "]")
-						self.query(conn_params[0], conn_params[1], db, values[1])
-						print()
-				elif len(conn_params) == 1:  #połącz do wszystkiego na liście
-					servers = ConfigManager("config/" + conn_params[0] + ".yaml").get_all()
-					for srv in servers:
-						print("[---- " + srv + " ----]")
-						databases = servers[srv]["databases"]
-						for db in databases:
-							print("+[" + db + "]")
-							self.query(conn_params[0], srv, db, values[1])
-							print()
-						print()
-				else:
-					raise ParseArgsException("Niepoprawny parametr połączenia!")
-			elif values_num == 1:  #wykonujemy na wszystkich
-				files = []
-				for file in os.listdir("./config"):
-					if file.endswith(".yaml"):
-						files.append(file.split(".")[0])
-
-				print("Query to:")
-				for file in files:
-					print(file)
-
-				ans = input("Are you sure? [NO/yes/info]: ")
-				if ans == "yes":
-					for file in files:
-						servers = ConfigManager("config/" + file + ".yaml").get_all()
-						for srv in servers:
-							print("[---- " + srv + " ----]")
-							databases = servers[srv]["databases"]
-							for db in databases:
-								print("+[" + db + "]")
-								self.query(file, srv, db, values[0])
-								print()
-						print()
-				elif ans == "info":
-					for file in files:
-						servers = ConfigManager("config/" + file + ".yaml").get_all()
-						for srv in servers:
-							print("[---- " + srv + " ----]")
-							databases = servers[srv]["databases"]
-							for db in databases:
-								print("+" + db)
-						print()
-					print()
-				else:
-					print("aborted")
-
-		except ConfigManagerError as e:
-			print(e)
-		except ParseArgsException as e:
-			print(e)
-
 
 	def do_raw_query(self, args):
 		try:
