@@ -87,6 +87,33 @@ class Postgres(ModuleCore):
 			print('--------------------')
 			return False
 
+	def psycop_query(self, db_name, db_user, db_passwd, db_host, db_port, db_query):
+		try:
+			pg_conn = psycopg2.connect(dbname=db_name, user=db_user, host=db_host, password=db_passwd, port=db_port)
+			pg_conn.autocommit = True;
+			cur = pg_conn.cursor()
+			cur.execute(db_query)
+
+			pt = from_db_cursor(cur)
+			if pt != None:
+				print(pt)
+
+		except psycopg2.Error as e:
+			print('--------------------')
+			print('Error:', e, end='')
+			print('--------------------')
+		except psycopg2.Warning as w:
+			print('--------------------')
+			print('Warning:', w, end='')
+			print('--------------------')
+		except psycopg2.InterfaceError as e:
+			print('--------------------')
+			print('Error:', e, end='')
+			print('--------------------')
+		except psycopg2.DatabaseError as e:
+			print('--------------------')
+			print('Error:', e, end='')
+			print('--------------------')
 
 	def query(self, file_name, serv_name, base_name, db_query):
 		cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
@@ -104,38 +131,14 @@ class Postgres(ModuleCore):
 			adr = "localhost"
 
 			if status == "ok":  #udało się utworzyć tunel
-				try:
-					pg_conn = psycopg2.connect(dbname=database["name"], user=database["user"], host=adr,
-											password=database["passwd"], port=db_port)
-					pg_conn.autocommit = True;
-					cur = pg_conn.cursor()
-					cur.execute(db_query)
+				self.psycop_query(database["name"], database["user"], database["passwd"], adr, db_port, db_query)
+			else:
+				print('--------------------')
+				print('Error: Unable to create ssh tunnel')
+				print('--------------------')
 
-					pt = from_db_cursor(cur)
-					print(pt)
-
-				except psycopg2.Error as e:
-					print('--------------------')
-					print('Error:', e, end='')
-					print('--------------------')
-				except psycopg2.Warning as w:
-					print('--------------------')
-					print('Warning:', w, end='')
-					print('--------------------')
-				except psycopg2.InterfaceError as e:
-					print('--------------------')
-					print('Error:', e, end='')
-					print('--------------------')
-				except psycopg2.DatabaseError as e:
-					print('--------------------')
-					print('Error:', e, end='')
-					print('--------------------')
-			elif conn["type"] == "direct":	#próba bezpośredniego połączonia
-
-				pass
-
-			pass
-		else:
+		elif conn["type"] == "direct":
+			self.psycop_query(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], db_query)
 			pass
 
 	def local_dump(self, db_name, db_user, db_pass, host, port, file_name):
@@ -321,35 +324,39 @@ class Postgres(ModuleCore):
 			print(e)
 
 	def local_restore(self, db_name, db_user, db_pass, host, port, file_name):
-		dumper = """./bin/pg_restore.exe -U %s -h %s -p %s -f %s -C"""
-		command = dumper % (db_user, host, port, file_name)
-
-		os.putenv('PGPASSWORD', db_pass)
-		try:
-			proc = Popen(command, stdout=PIPE, stderr=PIPE)
-		except FileNotFoundError:
-			raise PostgressError("|  |  !- ERROR: pg_dump not found")
-
-		stderr = b'';
-		for line in proc.stderr:
-			stderr += line
-
-		if stderr != b'':
-			raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
+		pass
+		# os.putenv('PGPASSWORD', db_pass)
+		# dumper = "psql %s -U %s -h %s -p %s"
+		# command = dumper % (db_name, db_user, host)
+		# client = paramiko.SSHClient()
+		# client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		# client.connect(conn["adress"], username=conn["user"] ,password=conn["passwd"], port=22)
+		# channel = client.get_transport().open_session()
+		#
+		#
+		# channel.exec_command(command)
+		#
+		# stderr = b''
+		# cmd = channel.recv_stderr(256)
+		# while cmd != b'':
+		# 	stderr += cmd
+		# 	cmd = channel.recv_stderr(256)
+		#
+		# if stderr == b'':
+		# 	stdout = b''
+		# 	cmd = channel.recv(256)
+		# 	while cmd != b'':
+		# 		stdout += cmd
+		# 		cmd = channel.recv(256)
+		# 	file = open(dump_file_name, 'w')
+		# 	file.write(stdout.decode())
+		# 	file.close()
 
 	def restore(self, file_name, serv_name, base_name, dump_file):
-		cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
-		conn = cnf["connection"]
-		database = cnf["databases"][base_name]
+		with open (dump_file, "r") as myfile:
+			data=myfile.read()
 
-		os.putenv('PGPASSWORD', database["passwd"])
 
-		if conn["type"] == "ssh": #Dla połączeń ssh
-			pass
-		elif conn["type"] == "direct": #Jeżeli nie ma ssh
-			self.local_restore(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], dump_file)
-			pass
-		return True
 
 	def do_restore(self, args):
 		try:
