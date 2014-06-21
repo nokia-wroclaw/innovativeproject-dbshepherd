@@ -43,7 +43,7 @@ class Shell(ModuleCore):
 	modules = []
 
 	try:
-		loader = ConfigManager("modules.yaml").loader
+		loader = ConfigManager("modules.yaml").getList()
 		for module_name in loader:
 			modules.append(module_name)
 	except ConfigManagerError as e:
@@ -155,7 +155,7 @@ class Shell(ModuleCore):
 			return 1
 		
 		server_list = []
-		for server in conf.loader:
+		for server in conf.getList():
 			server_list.append(server)
 
 		connection_list ={}
@@ -168,14 +168,14 @@ class Shell(ModuleCore):
 				while t == None:
 					t = conn.get_state()
 					#status_adres_localport
-					server_status = t.split("_")
-					try:
-						connection_list[server_status[1]]=server_status[2]
-						print("Connecting to" , connection["adress"], "[", server_status[0], "]")
-					except IndexError as e:
-						print(t)
+				server_status = t.split("_")
+				try:
+					connection_list[server_status[1]]=server_status[2]
+					print("Connecting to" , connection["adress"], "[", server_status[0], "]")
+				except IndexError as e:
+					print(t)
 			except AttributeError as e:
-				print("CONNECTING USING LOCAL MANAGER!")
+				print("CONNECTING USING LOCAL MANAGER!",e)
 		print(connection_list)
 
 # if __name__ == '__main__':

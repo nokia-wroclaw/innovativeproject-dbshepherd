@@ -42,7 +42,7 @@ class YamlTest(unittest.TestCase):
 		for file in lists:
 			try:
 				yaml = ConfigManager("config/"+file+".yaml")
-				for server in yaml.loader:
+				for server in yaml.getList():
 					try:
 						connection = yaml.get(server)["connection"]
 						test = connection["adress"]

@@ -10,14 +10,21 @@ class ConfigManager:
 			raise ConfigManagerError(path+' file does not exist')
 		self.loader = yaml.load(self.yamlfile)
 		self.yamlfile.close()
+		
 	def get(self, what):
 		try:
 			return self.loader[what]
 		except KeyError:
 			err = what + ' is not exist in: '+self.path
 			raise ConfigManagerError(err)
-
-	def get_all(self):
+	
+	def getList(self):
+			return_list = []
+			for server in self.loader:
+				return_list.append(server)
+			return return_list
+			
+	def getAll(self):
 		return self.loader
 
 class ConfigManagerError(Exception):
