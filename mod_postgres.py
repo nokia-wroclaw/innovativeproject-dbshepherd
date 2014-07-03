@@ -90,15 +90,15 @@ class Postgres(ModuleCore):
 	# ------------------------------------------------------------------------------------------------------------------
 
 	def local_dump(self, db_name, db_user, db_pass, host, port, file_name, type = 'sql'):
-		dumper = """./bin/pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
+		dumper = """pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
 
 		if type == 'tar':
 			dumper += ' -Ft'
-			file = file_name + '.tar'
+			dump_file_name = file_name + '.tar'
 		else:
-			file = file_name + '.sql'
+			dump_file_name = file_name + '.sql'
 
-		command = dumper % (db_user, db_name, host, port, file)
+		command = dumper % (db_user, db_name, host, port, dump_file_name)
 
 		os.putenv('PGPASSWORD', db_pass)
 		try:
@@ -113,200 +113,148 @@ class Postgres(ModuleCore):
 		if stderr != b'':
 			raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
 
-	def remote_dump(self):
-		pass
+	def remote_dump(self, db_name, db_user, db_pass, con_user, con_pass, host, sshport, remoteport, file_name, type = 'sql'):
+		dumper = "pg_dump -U %s -d %s -C --column-inserts"
+
+		if type == 'tar':
+			dumper += ' -Ft'
+			dump_file_name = file_name + '.tar'
+		else:
+			dump_file_name = file_name + '.sql'
+
+		os.putenv('PGPASSWORD', db_pass)
+		command = dumper % (db_user, db_name)
+		client = paramiko.SSHClient()
+		client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		client.connect(host, username=con_user ,password=con_pass, port=sshport)
+		channel = client.get_transport().open_session()
+		channel.exec_command(command)
+
+		stderr = b''
+		cmd = channel.recv_stderr(256)
+		while cmd != b'':
+			stderr += cmd
+			cmd = channel.recv_stderr(256)
+
+		if stderr == b'':
+			stdout = b''
+			cmd = channel.recv(256)
+			while cmd != b'':
+				stdout += cmd
+				cmd = channel.recv(256)
+
+			file = open(dump_file_name, 'wb')
+			file.write(stdout)
+			file.close()
+		else: # nie udało się pg_dumpem z serwera, próba pg_dumpem lokalnym
+			if self.warn == True:
+				print('--------------------')
+				print('WARNING: '+stderr.decode('iso_8859_2', 'ignore')+'attempt to use the local pg_dump')
+			cmd = host + "_" + con_user + "_" + con_pass + "_" + str(sshport) + "_" + str(remoteport) + "_no"
+			common.conn.send(cmd)
+			ans = None
+			while ans == None:
+				ans = common.conn.get_state()
+
+			if ans.split('_')[0] == 'ok':
+				# self.local_dump(db_name, db_user, db_pass, '127.0.0.1', int(ans.split("_")[2]), dump_file_name, type)
+				self.local_dump(db_name, db_user, db_pass, '127.0.0.1', int(ans.split("_")[2]), file_name, type)
+				if self.warn == True:
+					print('SUCCESS')
+					print('--------------------')
+			else:
+				if self.warn != True:
+					print('--------------------')
+				print('FAIL')
+				print('--------------------')
+
+	def exe_dump(self, file_name, serv_name, base_name, backup_name, type):
+		try:
+			date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+			cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
+			conn = cnf["connection"]
+			db = cnf["databases"][base_name]
+			dump_file_name = 'dump/'+backup_name+'_'+file_name+'_'+serv_name+'_'+base_name+'_'+date
+
+			if conn["type"] == "ssh": #Dla połączeń ssh
+				self.remote_dump(db["name"], db["user"], db["passwd"], conn["user"], conn["passwd"], conn["adress"], conn["sshport"], conn["remoteport"], dump_file_name, type)
+			elif conn["type"] == "direct":
+				self.local_dump(db["name"], db["user"], db["passwd"], conn["adress"], conn["remoteport"], dump_file_name, type)
+		except ConnectionRefusedError:
+			print('--------------------')
+			print('ERROR: Connection Refused by host')
+			print('--------------------')
+			return False
+
+		except TimeoutError:
+			print('--------------------')
+			print('ERROR: Connection timeout')
+			print('--------------------')
+			return False
+
+		except paramiko.ssh_exception.AuthenticationException:
+			print('--------------------')
+			print('ERROR: Authentication problem')
+			print('--------------------')
+			return False
+
+		except KeyError as e:
+			print('--------------------')
+			print('ERROR: Unable to find key:',e)
+			print('--------------------')
+			return False
+
+		except PostgressError as e:
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
+			return False
+
+		except Exception as e:
+			print(type(e))
+			print(e)
+			return False
 
 	def do_dump(self, args):
-		self.local_dump('postgres', 'postgres', 'root', '127.0.0.1', 5432, "test", 'tar')
+		try:
+			(values, num) = self.parse_args(args, 1, 2)
 
+			if num == 2:
+				self.exec_on_config(self.exe_dump, [values[1], 'sql'], values[0], 'tree')
+			elif num == 1:
+				self.exec_on_config(self.exe_dump, [values[0], 'sql'], '', 'tree')
 
-	# def local_dump(self, db_name, db_user, db_pass, host, port, file_name, type = ''):
-	# 	dumper = """./bin/pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts""" + ' ' + type
-	# 	command = dumper % (db_user, db_name, host, port, file_name)
-	#
-	# 	os.putenv('PGPASSWORD', db_pass)
-	# 	try:
-	# 		proc = Popen(command, stdout=PIPE, stderr=PIPE)
-	# 	except FileNotFoundError:
-	# 		raise PostgressError(" ERROR: pg_dump not found")
-	#
-	# 	stderr = b'';
-	# 	for line in proc.stderr:
-	# 		stderr += line
-	#
-	# 	if stderr != b'':
-	# 		raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
-	#
-	#
-	#
-	#
-	# def dump(self, file_name, serv_name, base_name, dump_file, type = ''):
-	# 	try:
-	# 		date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-	# 		cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
-	# 		conn = cnf["connection"]
-	# 		database = cnf["databases"][base_name]
-	# 		dump_file_name = 'dump/'+dump_file+'_'+file_name+'_'+serv_name+'_'+base_name+'_'+date+'.sql'
-	#
-	# 		os.putenv('PGPASSWORD', database["passwd"])
-	#
-	# 		if conn["type"] == "ssh": #Dla połączeń ssh
-	# 			dumper = "pg_dump -U %s -d %s -C --column-inserts" + ' ' + type
-	# 			command = dumper % (database["user"], database["name"])
-	# 			client = paramiko.SSHClient()
-	# 			client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-	# 			client.connect(conn["adress"], username=conn["user"] ,password=conn["passwd"], port=22)
-	# 			channel = client.get_transport().open_session()
-	#
-	#
-	# 			channel.exec_command(command)
-	#
-	# 			stderr = b''
-	# 			cmd = channel.recv_stderr(256)
-	# 			while cmd != b'':
-	# 				stderr += cmd
-	# 				cmd = channel.recv_stderr(256)
-	#
-	# 			if stderr == b'':
-	# 				stdout = b''
-	# 				cmd = channel.recv(256)
-	# 				while cmd != b'':
-	# 					stdout += cmd
-	# 					cmd = channel.recv(256)
-	# 				file = open(dump_file_name, 'w')
-	# 				file.write(stdout)
-	# 				file.close()
-	# 			else:
-	# 				if self.warn == True:
-	# 					print('--------------------')
-	# 					print('WARNING: '+stderr.decode('iso_8859_2', 'ignore')+'attempt to use the local pg_dump')
-	# 				cmd = conn["adress"] + "_" + conn["user"] + "_" + conn["passwd"] + "_" + str(conn["sshport"]) + "_" + str(conn["remoteport"]) + "_no"
-	# 				common.conn.send(cmd)
-	# 				ans = None
-	# 				while ans == None:
-	# 					ans = common.conn.get_state()
-	#
-	# 				if ans.split('_')[0] == 'ok':
-	# 					self.local_dump(database["name"], database["user"], database["passwd"], '127.0.0.1', int(ans.split("_")[2]), dump_file_name, type)
-	# 					if self.warn == True:
-	# 						print('SUCCESS')
-	# 						print('--------------------')
-	# 				else:
-	# 					if self.warn != True:
-	# 						print('--------------------')
-	# 					print('FAIL')
-	# 					print('--------------------')
-	#
-	#
-	# 		elif conn["type"] == "direct": #Jeżeli nie ma ssh
-	# 			self.local_dump(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], dump_file_name, type)
-	#
-	# 	except ConnectionRefusedError:
-	# 		print('--------------------')
-	# 		print('ERROR: Connection Refused by host')
-	# 		print('--------------------')
-	# 		return False
-	#
-	# 	except TimeoutError:
-	# 		print('--------------------')
-	# 		print('ERROR: Connection timeout')
-	# 		print('--------------------')
-	# 		return False
-	#
-	# 	except paramiko.ssh_exception.AuthenticationException:
-	# 		print('--------------------')
-	# 		print('ERROR: Authentication problem')
-	# 		print('--------------------')
-	# 		return False
-	#
-	# 	except KeyError as e:
-	# 		print('--------------------')
-	# 		print('ERROR: Unable to find key:',e)
-	# 		print('--------------------')
-	# 		return False
-	#
-	# 	except PostgressError as e:
-	# 		print('--------------------')
-	# 		print('ERROR:',e, end='')
-	# 		print('--------------------')
-	# 		return False
-	#
-	# 	except Exception as e:
-	# 		print(type(e))
-	# 		print(e)
-	# 		return False
-	#
-	# 	return True
+		except ConfigManagerError as e:
+			print('--------------------')
+			print('ERROR:',e)
+			print('--------------------')
+		except ParseArgsException as e:
+			print(e)
+		except KeyError as e:
+			print('--------------------')
+			print('ERROR: Unable to find key:',e)
+			print('--------------------')
 
+	def do_dump_tar(self, args):
+		try:
+			(values, num) = self.parse_args(args, 1, 2)
 
-	# def do_dump(self, args):
-	# 	"""dump <base> <file_name>"""
-	# 	self.dumper(args)
-	#
-	# def do_dump_tar(self, args):
-	# 	"""dump <base> <file_name>"""
-	# 	self.dumper(args, '-Ft')
-	#
-	# def dumper(self, args, type = ''):
-	# 	try:
-	# 		(values, values_num) = self.parse_args(args, 1, 2)
-	# 		if len(values) == 2: #Jeżeli 2 argumenty (na wybranym konfigu)
-	# 			conf_args = values[0].split('.')
-	#
-	# 			if len(conf_args)== 3:
-	# 				self.dump(conf_args[0], conf_args[1], conf_args[2], values[1], type)
-	# 			elif len(conf_args) == 2:
-	# 				conf = ConfigManager("config/" + conf_args[0] + ".yaml").get(conf_args[1])
-	# 				databases = conf["databases"]  #konfiguracje baz danych
-	# 				print(">Dumping databases:")
-	# 				for db in databases:
-	# 					print("+-", db)
-	# 					self.dump(conf_args[0], conf_args[1], db, values[1], type)
-	# 			elif len(conf_args) == 1:
-	# 				servers = ConfigManager("config/" + conf_args[0] + ".yaml").get_all()
-	# 				print(">Dumping databases:")
-	# 				for srv in servers:
-	# 					print("+-", srv)
-	# 					databases = servers[srv]["databases"]
-	# 					for db in databases:
-	# 						print("|  +-", db)
-	# 						self.dump(conf_args[0], srv, db, values[1], type)
-	# 		elif len(values) == 1: #jeden argument (na wszystkich konfigach)
-	# 			files = []
-	# 			for file in os.listdir("./config"):
-	# 				if file.endswith(".yaml"):
-	# 					files.append(file.split(".")[0])
-	#
-	# 			print("Dump:")
-	# 			for file in files:
-	# 				print('+-', file)
-	#
-	# 			ans = input("Are you sure? [NO/yes/info]: ")
-	# 			if ans == "yes":
-	# 				for file in files:
-	# 					print('+-', file)
-	# 					servers = ConfigManager("config/" + file + ".yaml").get_all()
-	# 					for srv in servers:
-	# 						print("|  +-", srv)
-	# 						databases = servers[srv]["databases"]
-	# 						for db in databases:
-	# 							print("|  |  +-", db)
-	# 							self.dump(file, srv, db, values[0])
-	# 			elif ans == "info":
-	# 				for file in files:
-	# 					print('+-', file)
-	# 					servers = ConfigManager("config/" + file + ".yaml").get_all()
-	# 					for srv in servers:
-	# 						print("|  +-", srv)
-	# 						databases = servers[srv]["databases"]
-	# 						for db in databases:
-	# 							print("|  |  +-", db)
-	# 			else:
-	# 				print("aborted")
-	# 	except ParseArgsException as e:
-	# 		print("Incorrect number of arguments.")
-	# 	except Exception as e:
-	# 		print(e)
+			if num == 2:
+				self.exec_on_config(self.exe_dump, [values[1], 'tar'], values[0], 'tree')
+			elif num == 1:
+				self.exec_on_config(self.exe_dump, [values[0], 'tar'], '', 'tree')
+
+		except ConfigManagerError as e:
+			print('--------------------')
+			print('ERROR:',e)
+			print('--------------------')
+		except ParseArgsException as e:
+			print(e)
+		except KeyError as e:
+			print('--------------------')
+			print('ERROR: Unable to find key:',e)
+			print('--------------------')
+
 
 	def local_restore(self, db_name, db_user, db_pass, host, port, file_name):
 		pass

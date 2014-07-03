@@ -5,7 +5,7 @@
    sshport: 22
    remoteport: 5432
    user: dbshepherd
-   passwd: nsn
+   passwd: dbshepherd
   databases:
    pgBase_test:
     name: dbshepherd_local
