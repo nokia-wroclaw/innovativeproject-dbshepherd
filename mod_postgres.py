@@ -113,8 +113,11 @@ class Postgres(ModuleCore):
 		if stderr != b'':
 			raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
 
+	def remote_dump(self):
+		pass
+
 	def do_dump(self, args):
-		self.local_dump('postgres', 'postgres', 'root', '127.0.0.1', 5432, "root", 'tar')
+		self.local_dump('postgres', 'postgres', 'root', '127.0.0.1', 5432, "test", 'tar')
 
 
 	# def local_dump(self, db_name, db_user, db_pass, host, port, file_name, type = ''):
