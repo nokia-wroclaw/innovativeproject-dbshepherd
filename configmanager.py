@@ -18,13 +18,13 @@ class ConfigManager:
 			err = what + ' is not exist in: '+self.path
 			raise ConfigManagerError(err)
 	
-	def getList(self):
+	def get_list(self):
 			return_list = []
 			for server in self.loader:
 				return_list.append(server)
 			return return_list
 			
-	def getAll(self):
+	def get_all(self):
 		return self.loader
 
 class ConfigManagerError(Exception):

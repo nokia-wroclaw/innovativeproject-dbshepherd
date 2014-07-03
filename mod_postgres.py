@@ -141,8 +141,8 @@ class Postgres(ModuleCore):
 			self.psycop_query(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], db_query)
 			pass
 
-	def local_dump(self, db_name, db_user, db_pass, host, port, file_name):
-		dumper = """./bin/pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
+	def local_dump(self, db_name, db_user, db_pass, host, port, file_name, type = ''):
+		dumper = """./bin/pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts""" + ' ' + type
 		command = dumper % (db_user, db_name, host, port, file_name)
 
 		os.putenv('PGPASSWORD', db_pass)
@@ -161,7 +161,7 @@ class Postgres(ModuleCore):
 
 
 
-	def dump(self, file_name, serv_name, base_name, dump_file):
+	def dump(self, file_name, serv_name, base_name, dump_file, type = ''):
 		try:
 			date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 			cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
@@ -172,7 +172,7 @@ class Postgres(ModuleCore):
 			os.putenv('PGPASSWORD', database["passwd"])
 
 			if conn["type"] == "ssh": #Dla połączeń ssh
-				dumper = "pg_dump -U %s -d %s -C --column-inserts"
+				dumper = "pg_dump -U %s -d %s -C --column-inserts" + ' ' + type
 				command = dumper % (database["user"], database["name"])
 				client = paramiko.SSHClient()
 				client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -208,7 +208,7 @@ class Postgres(ModuleCore):
 						ans = common.conn.get_state()
 
 					if ans.split('_')[0] == 'ok':
-						self.local_dump(database["name"], database["user"], database["passwd"], '127.0.0.1', int(ans.split("_")[2]), dump_file_name)
+						self.local_dump(database["name"], database["user"], database["passwd"], '127.0.0.1', int(ans.split("_")[2]), dump_file_name, type)
 						if self.warn == True:
 							print('SUCCESS')
 							print('--------------------')
@@ -220,7 +220,7 @@ class Postgres(ModuleCore):
 
 
 			elif conn["type"] == "direct": #Jeżeli nie ma ssh
-				self.local_dump(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], dump_file_name)
+				self.local_dump(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], dump_file_name, type)
 
 		except ConnectionRefusedError:
 			print('--------------------')
@@ -259,24 +259,29 @@ class Postgres(ModuleCore):
 
 		return True
 
-
-
 	def do_dump(self, args):
 		"""dump <base> <file_name>"""
+		self.dumper(args)
+
+	def do_dump_tar(self, args):
+		"""dump <base> <file_name>"""
+		self.dumper(args, '-Ft')
+
+	def dumper(self, args, type = ''):
 		try:
 			(values, values_num) = self.parse_args(args, 1, 2)
 			if len(values) == 2: #Jeżeli 2 argumenty (na wybranym konfigu)
 				conf_args = values[0].split('.')
 
 				if len(conf_args)== 3:
-					self.dump(conf_args[0], conf_args[1], conf_args[2], values[1])
+					self.dump(conf_args[0], conf_args[1], conf_args[2], values[1], type)
 				elif len(conf_args) == 2:
 					conf = ConfigManager("config/" + conf_args[0] + ".yaml").get(conf_args[1])
 					databases = conf["databases"]  #konfiguracje baz danych
 					print(">Dumping databases:")
 					for db in databases:
 						print("+-", db)
-						self.dump(conf_args[0], conf_args[1], db, values[1])
+						self.dump(conf_args[0], conf_args[1], db, values[1], type)
 				elif len(conf_args) == 1:
 					servers = ConfigManager("config/" + conf_args[0] + ".yaml").get_all()
 					print(">Dumping databases:")
@@ -285,7 +290,7 @@ class Postgres(ModuleCore):
 						databases = servers[srv]["databases"]
 						for db in databases:
 							print("|  +-", db)
-							self.dump(conf_args[0], srv, db, values[1])
+							self.dump(conf_args[0], srv, db, values[1], type)
 			elif len(values) == 1: #jeden argument (na wszystkich konfigach)
 				files = []
 				for file in os.listdir("./config"):

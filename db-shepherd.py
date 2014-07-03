@@ -43,7 +43,7 @@ class Shell(ModuleCore):
 	modules = []
 
 	try:
-		loader = ConfigManager("modules.yaml").getList()
+		loader = ConfigManager("modules.yaml").get_list()
 		for module_name in loader:
 			modules.append(module_name)
 	except ConfigManagerError as e:
@@ -155,7 +155,7 @@ class Shell(ModuleCore):
 			return 1
 		
 		server_list = []
-		for server in conf.getList():
+		for server in conf.get_list():
 			server_list.append(server)
 
 		connection_list ={}
