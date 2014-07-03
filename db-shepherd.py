@@ -40,7 +40,7 @@ class Shell(ModuleCore):
 		super().__init__()
 		self.warn = False
 		self.master = None
-		
+
 		self.prompt = "#>"
 		self.modules = []
 
@@ -85,7 +85,7 @@ class Shell(ModuleCore):
 			else:
 				print("Aborted")
 
-		else:   
+		else:
 			params = arg.split(".")
 			if len(params) == 1:
 				print ("connect list...")
@@ -107,7 +107,7 @@ class Shell(ModuleCore):
 						print("CONNECTING USING LOCAL MANAGER!")
 				except ConfigManagerError as e:
 					print (e)
-				
+
 				except Exception as e:
 					print (e)
 			else:
@@ -155,16 +155,35 @@ class Shell(ModuleCore):
 	def exec_on_config(self, fun, args, values, view = ''): # link - file.server.base
 		if values == '': # wykonaj na wszystkich plikach
 			files = ConfigManager().get_config_list() # pobierz listę plików konfiguracyjnych
+
+			print("Exec on:")
 			for file in files:
-				if view == 'tree': print('+-', file)
-				servers = ConfigManager("config/" + file + ".yaml").get_all()
-				for srv in servers:
-					if view == 'tree': print("|  +-", srv)
-					databases = servers[srv]["databases"]
-					for db in databases:
-						if view == 'tree': print("|  |  +-", db)
-						if view == 'list': print('[', file, '->', srv, '->', db, ']')
-						fun(file, srv, db, *args)
+				print('+-',file)
+
+			ans = input("Are you sure? [NO/yes/info]: ")
+			if ans == "yes":
+				for file in files:
+					if view == 'tree': print('+-', file)
+					servers = ConfigManager("config/" + file + ".yaml").get_all()
+					for srv in servers:
+						if view == 'tree': print("|  +-", srv)
+						databases = servers[srv]["databases"]
+						for db in databases:
+							if view == 'tree': print("|  |  +-", db)
+							if view == 'list': print('[', file, '->', srv, '->', db, ']')
+							fun(file, srv, db, *args)
+			elif ans == "info":
+				for file in files:
+					print('+-', file)
+					servers = ConfigManager("config/" + file + ".yaml").get_all()
+					for srv in servers:
+						print('|  +-', srv)
+						databases = servers[srv]["databases"]
+						for db in databases:
+							print('|  |  +-', db)
+			else:
+				print("aborted")
+
 		else:
 			val = values.split('.')
 			params = len(val)
@@ -202,19 +221,19 @@ class Shell(ModuleCore):
 		except KeePassError as e:
 			print (e)
 			raise e
-			
+
 	def connect_command_builder(self,connection, perm): # KeyValue
 		command = connection["adress"] + "_" + connection["user"]+ "_" + \
 					self.get_password(connection["passwd"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
-		return command	
-	
+		return command
+
 	def connectList(self, listFile):
 		try:
 			conf = ConfigManager(listFile)
 		except Exception as e:
 			print ("No conf file", listFile)
 			return 1
-		
+
 		server_list = []
 		for server in conf.get_list():
 			server_list.append(server)
