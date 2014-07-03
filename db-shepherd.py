@@ -164,14 +164,17 @@ class Shell(ModuleCore):
 			if ans == "yes":
 				for file in files:
 					if view == 'tree': print('+-', file)
-					servers = ConfigManager("config/" + file + ".yaml").get_all()
-					for srv in servers:
-						if view == 'tree': print("|  +-", srv)
-						databases = servers[srv]["databases"]
-						for db in databases:
-							if view == 'tree': print("|  |  +-", db)
-							if view == 'list': print('[', file, '->', srv, '->', db, ']')
-							fun(file, srv, db, *args)
+					try:
+						servers = ConfigManager("config/" + file + ".yaml").get_all()
+						for srv in servers:
+							if view == 'tree': print("|  +-", srv)
+							databases = servers[srv]["databases"]
+							for db in databases:
+								if view == 'tree': print("|  |  +-", db)
+								if view == 'list': print('[', file, '->', srv, '->', db, ']')
+								fun(file, srv, db, *args)
+					except ConfigManagerError as e:
+						print(e)
 			elif ans == "info":
 				for file in files:
 					print('+-', file)
@@ -189,27 +192,42 @@ class Shell(ModuleCore):
 			params = len(val)
 			if params == 1:
 				file = val[0]
-				servers = ConfigManager("config/" + file + ".yaml").get_all()
-				for srv in servers:
-					if view == 'tree': print("+-", srv)
-					databases = servers[srv]["databases"]
-					for db in databases:
-						if view == 'tree': print("|  +-", db)
-						if view == 'list': print('[', srv, '->', db, ']')
-						fun(file, srv, db, *args)
+				try:
+					servers = ConfigManager("config/" + file + ".yaml").get_all()
+					for srv in servers:
+						if view == 'tree': print("+-", srv)
+						databases = servers[srv]["databases"]
+						for db in databases:
+							if view == 'tree': print("|  +-", db)
+							if view == 'list': print('[', srv, '->', db, ']')
+							fun(file, srv, db, *args)
+				except ConfigManagerError as e:
+					print(e)
+				except KeyError as e:
+					print(e, "is not exist")
+
 			elif params == 2:
 				file = val[0]
-				servers = ConfigManager("config/" + file + ".yaml").get_all()
-				srv = val[1]
-				databases = servers[srv]["databases"]
-				for db in databases:
-					if view == 'tree': print("+-", db)
-					if view == 'list': print('[', db, ']')
-					fun(file, srv, db, *args)
+				try:
+					servers = ConfigManager("config/" + file + ".yaml").get_all()
+					srv = val[1]
+					databases = servers[srv]["databases"]
+					for db in databases:
+						if view == 'tree': print("+-", db)
+						if view == 'list': print('[', db, ']')
+						fun(file, srv, db, *args)
+				except ConfigManagerError as e:
+					print(e)
+				except KeyError as e:
+					print(e, "is not exist")
+
 			elif params == 3:
-				fun(val[0], val[1], val[2], *args)
-				pass
-		pass
+				try:
+					fun(val[0], val[1], val[2], *args)
+				except ConfigManagerError as e:
+					print(e)
+				except KeyError as e:
+					print(e, "is not exist")
 
 	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
 	def get_password(self, alias):
