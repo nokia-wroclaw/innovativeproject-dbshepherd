@@ -43,10 +43,7 @@ class Postgres(ModuleCore):
 				else:
 					raise ParseArgsException("Niepoprawny parametr połączenia!")
 			elif values_num == 1:  #wykonujemy na wszystkich
-				files = []
-				for file in os.listdir("./config"):
-					if file.endswith(".yaml"):
-						files.append(file.split(".")[0])
+				files = ConfigManager().get_config_list()
 
 				print("Query to:")
 				for file in files:

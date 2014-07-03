@@ -1,15 +1,17 @@
 import yaml
+import os
 #najpierw & później * !!
 
 class ConfigManager:
-	def __init__(self, path):
-		self.path = path
-		try:
-			self.yamlfile = open(path,'r')
-		except FileNotFoundError:
-			raise ConfigManagerError(path+' file does not exist')
-		self.loader = yaml.load(self.yamlfile)
-		self.yamlfile.close()
+	def __init__(self, path = ''):
+		if path != '':
+			self.path = path
+			try:
+				self.yamlfile = open(path,'r')
+			except FileNotFoundError:
+				raise ConfigManagerError(path+' file does not exist')
+			self.loader = yaml.load(self.yamlfile)
+			self.yamlfile.close()
 		
 	def get(self, what):
 		try:
@@ -26,6 +28,13 @@ class ConfigManager:
 			
 	def get_all(self):
 		return self.loader
+
+	def get_config_list(self):
+		files = []
+		for file in os.listdir("./config"):
+			if file.endswith(".yaml"):
+				files.append(file.split(".")[0])
+		return files
 
 class ConfigManagerError(Exception):
 	def __init__(self, value):

@@ -144,20 +144,51 @@ class Shell(ModuleCore):
 			completions = self.modules[:]
 		else:
 			completions = [f for f in self.modules if f.startswith(text)]
-		return completions	
+		return completions
 
-	def exec_on_config(self, fun, args, link): # link - file.server.base
-		if link == '': # wykonaj na wszystkich plikach
+	def nothing(self, file, srv, db, arg1, arg2):
+		print("nothing!!!", file, srv, db, arg1, arg2)
 
-			pass
+	def do_nothing(self, arg):
+		self.exec_on_config(self.nothing, ['aaabbbccc', 'asdsdasdasd'], arg, 'list')
+
+	def exec_on_config(self, fun, args, values, view = ''): # link - file.server.base
+		if values == '': # wykonaj na wszystkich plikach
+			files = ConfigManager().get_config_list() # pobierz listę plików konfiguracyjnych
+			for file in files:
+				if view == 'tree': print('+-', file)
+				servers = ConfigManager("config/" + file + ".yaml").get_all()
+				for srv in servers:
+					if view == 'tree': print("|  +-", srv)
+					databases = servers[srv]["databases"]
+					for db in databases:
+						if view == 'tree': print("|  |  +-", db)
+						if view == 'list': print('[', file, '->', srv, '->', db, ']')
+						fun(file, srv, db, *args)
 		else:
-			ln = link.split('.')
-			params = len(ln)
+			val = values.split('.')
+			params = len(val)
 			if params == 1:
-				pass
+				file = val[0]
+				servers = ConfigManager("config/" + file + ".yaml").get_all()
+				for srv in servers:
+					if view == 'tree': print("+-", srv)
+					databases = servers[srv]["databases"]
+					for db in databases:
+						if view == 'tree': print("|  +-", db)
+						if view == 'list': print('[', srv, '->', db, ']')
+						fun(file, srv, db, *args)
 			elif params == 2:
-				pass
+				file = val[0]
+				servers = ConfigManager("config/" + file + ".yaml").get_all()
+				srv = val[1]
+				databases = servers[srv]["databases"]
+				for db in databases:
+					if view == 'tree': print("+-", db)
+					if view == 'list': print('[', db, ']')
+					fun(file, srv, db, *args)
 			elif params == 3:
+				fun(val[0], val[1], val[2], *args)
 				pass
 		pass
 
