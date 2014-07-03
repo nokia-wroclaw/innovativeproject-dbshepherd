@@ -9,7 +9,7 @@ def get_password(file, masterpass, alias):
 	ret = ""
 	#print(db)
 	for entry in db.entries:
-		if alias == entry.title:
+		if alias == entry.title:	
 			ret = entry.password
 	if ret == "":
 		raise KeePassError(alias + " not present in db")

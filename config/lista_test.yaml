@@ -4,7 +4,7 @@
    type: ssh
    sshport: 443
    remoteport: 5432
-   passwd: nsnshepherd
+   passwd: nsn
   databases:
    pgBase_test:
     name: dbshepherd_local
@@ -22,7 +22,7 @@
    sshport: 222
    remoteport: 443
    user: nsn
-   passwd: nsnshepherd
+   passwd: nsn
   databases:
    pgBase_test:
     name: dbshepherd_local
@@ -40,7 +40,7 @@
    sshport: 22
    remoteport: 5432
    user: shepherd
-   passwd: dbshepherd
+   passwd: nsn
   databases:
    pgBase_test:
     name: dbshepherd_local
@@ -58,7 +58,7 @@
    sshport: 22
    remoteport: 5432
    user: dbshepherd
-   passwd: dbshepherd
+   passwd: nsn
   databases:
    pgBase_test:
     name: dbshepherd_local

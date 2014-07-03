@@ -2,12 +2,43 @@ import unittest
 import connection
 from ssh_tunnelmanager import TunnelManager
 from configmanager import ConfigManager, ConfigManagerError
-conn = None 
+from getpass import getpass
+from kp import KeePassError, get_password 
 
+conn = None 
+master = None
+
+def setUpModule():
+	global master
+	global conn
+	
+	try:
+		conn = connection.Connection()
+		conn.start()
+	except ConnectionRefusedError:
+		print("is ssh-shepherd running?")
+	
+	master = getpass("Master pass:")
+	
+def tearDownModule():
+	conn.stop()
+	
+	
 def connect_command_builder(connection, perm):
 		command = connection["adress"] + "_" + connection["user"]+ "_" + \
-					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+					get_pass(connection["passwd"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
 		return command
+		
+def get_pass(alias):
+		file = "keys.kdb"
+		if master == None:
+			raise KeePassError("Master Password Not Set")
+		try:
+			return get_password(file, master, alias)
+		except KeePassError as e:
+			print (e)
+			raise e
+
 		
 def create_command(server,perm):
 	conf = ConfigManager("config/lista_test.yaml")
@@ -29,6 +60,8 @@ def send_command(command):
 		print (e)
 
 class SShTest(unittest.TestCase):
+	
+		
 
 	def test1_connection_to_ssh_shepherd(self):
 		self.assertIsNotNone(conn)
@@ -115,11 +148,5 @@ class SShTest(unittest.TestCase):
 		to_find = connection["adress"] + ":" + str(connection["remoteport"])
 		self.assertNotEqual(-1, ans.find(to_find))
 		
-if __name__ == '__main__':
-	try:
-		conn = connection.Connection()
-		conn.start()
-	except ConnectionRefusedError:
-		print("is ssh-shepherd running?")
-			
+if __name__ == '__main__':	
 	unittest.main(verbosity=2)
