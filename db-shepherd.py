@@ -96,8 +96,7 @@ class Shell(ModuleCore):
 				try:
 					conf = ConfigManager("config/"+params[0]+".yaml")
 					connection =  conf.get(params[1])["connection"]
-					command = connection["adress"] + "_" + connection["user"]+ "_" + \
-							connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"])+ "_no"
+					command = self.connect_command_builder(connection,"no")
 					try:
 						conn.send(command)
 						t = None
@@ -105,10 +104,11 @@ class Shell(ModuleCore):
 							t = conn.get_state()
 						print(t)
 					except AttributeError as e:
-						print("CONNECTING USING LOCAL MANAGER!")
+						print("Connection to ssh shepherd error!",e)
 				except ConfigManagerError as e:
 					print (e)
-
+				except KeePassError as e:
+					print("Connecting to" , connection["adress"], "[", e, "]")
 				except Exception as e:
 					print (e)
 			else:
@@ -161,7 +161,6 @@ class Shell(ModuleCore):
 		try:
 			return get_password(file, self.master, alias)
 		except KeePassError as e:
-			print (e)
 			raise e
 
 	def connect_command_builder(self,connection, perm): # KeyValue
@@ -183,21 +182,29 @@ class Shell(ModuleCore):
 		connection_list ={}
 		for server in server_list:
 			connection =  conf.get(server)["connection"]
-			command = self.connect_command_builder(connection,"no")
 			try:
-				conn.send(command)
-				t = None
-				while t == None:
-					t = conn.get_state()
-					#status_adres_localport
-				server_status = t.split("_")
+				command = self.connect_command_builder(connection,"no")
 				try:
-					connection_list[server_status[1]]=server_status[2]
-					print("Connecting to" , connection["adress"], "[", server_status[0], "]")
-				except IndexError as e:
-					print(t)
-			except AttributeError as e:
-				print("CONNECTING USING LOCAL MANAGER!",e)
+					conn.send(command)
+					t = None
+					while t == None:
+						t = conn.get_state()
+						#status_adres_localport
+					server_status = t.split("_")
+					try:
+						connection_list[server_status[1]]=server_status[2]
+						print("Connecting to" , connection["adress"], "[", server_status[0], "]")
+					except IndexError as e:
+						print(t)
+				except AttributeError as e:
+					print("Connection to ssh shepherd error!",e)
+			except KeePassError as e:
+				print("Connecting to" , connection["adress"], "[", e, "]")
+			except KeyError as e:
+				print("Connecting to" , connection["adress"], "[", e, "]")
+			except Exception as e:
+					print (e)	
+				
 		print(connection_list)
 
 	def do_logo(self, args = ''):
