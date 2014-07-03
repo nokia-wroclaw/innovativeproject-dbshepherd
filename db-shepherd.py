@@ -40,6 +40,7 @@ class Shell(ModuleCore):
 		super().__init__()
 		self.warn = False
 		self.master = None
+		self.do_logo()
 
 		self.prompt = "#>"
 		self.modules = []
@@ -152,83 +153,6 @@ class Shell(ModuleCore):
 	def do_nothing(self, arg):
 		self.exec_on_config(self.nothing, ['aaabbbccc', 'asdsdasdasd'], arg, 'list')
 
-	def exec_on_config(self, fun, args, values, view = ''): # link - file.server.base
-		if values == '': # wykonaj na wszystkich plikach
-			files = ConfigManager().get_config_list() # pobierz listę plików konfiguracyjnych
-
-			print("Exec on:")
-			for file in files:
-				print('+-',file)
-
-			ans = input("Are you sure? [NO/yes/info]: ")
-			if ans == "yes":
-				for file in files:
-					if view == 'tree': print('+-', file)
-					try:
-						servers = ConfigManager("config/" + file + ".yaml").get_all()
-						for srv in servers:
-							if view == 'tree': print("|  +-", srv)
-							databases = servers[srv]["databases"]
-							for db in databases:
-								if view == 'tree': print("|  |  +-", db)
-								if view == 'list': print('[', file, '->', srv, '->', db, ']')
-								fun(file, srv, db, *args)
-					except ConfigManagerError as e:
-						print(e)
-			elif ans == "info":
-				for file in files:
-					print('+-', file)
-					servers = ConfigManager("config/" + file + ".yaml").get_all()
-					for srv in servers:
-						print('|  +-', srv)
-						databases = servers[srv]["databases"]
-						for db in databases:
-							print('|  |  +-', db)
-			else:
-				print("aborted")
-
-		else:
-			val = values.split('.')
-			params = len(val)
-			if params == 1:
-				file = val[0]
-				try:
-					servers = ConfigManager("config/" + file + ".yaml").get_all()
-					for srv in servers:
-						if view == 'tree': print("+-", srv)
-						databases = servers[srv]["databases"]
-						for db in databases:
-							if view == 'tree': print("|  +-", db)
-							if view == 'list': print('[', srv, '->', db, ']')
-							fun(file, srv, db, *args)
-				except ConfigManagerError as e:
-					print(e)
-				except KeyError as e:
-					print(e, "is not exist")
-
-			elif params == 2:
-				file = val[0]
-				try:
-					servers = ConfigManager("config/" + file + ".yaml").get_all()
-					srv = val[1]
-					databases = servers[srv]["databases"]
-					for db in databases:
-						if view == 'tree': print("+-", db)
-						if view == 'list': print('[', db, ']')
-						fun(file, srv, db, *args)
-				except ConfigManagerError as e:
-					print(e)
-				except KeyError as e:
-					print(e, "is not exist")
-
-			elif params == 3:
-				try:
-					fun(val[0], val[1], val[2], *args)
-				except ConfigManagerError as e:
-					print(e)
-				except KeyError as e:
-					print(e, "is not exist")
-
 	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
 	def get_password(self, alias):
 		file = "keys.kdb"
@@ -275,6 +199,22 @@ class Shell(ModuleCore):
 			except AttributeError as e:
 				print("CONNECTING USING LOCAL MANAGER!",e)
 		print(connection_list)
+
+	def do_logo(self, args = ''):
+		import os
+		ts = os.get_terminal_size()
+		space = (ts.columns - 66) / 2
+
+		logo ="""       ____               __               __                  __
+  ____/ / /_        _____/ /_  ___  ____  / /_  ___  _________/ /
+ / __  / __ \______/ ___/ __ \/ _ \/ __ \/ __ \/ _ \/ ___/ __  /
+/ /_/ / /_/ /_____(__  ) / / /  __/ /_/ / / / /  __/ /  / /_/ /
+\__,_/_.___/     /____/_/ /_/\___/ .___/_/ /_/\___/_/   \__,_/
+                                /_/                              """
+		logo_lines = logo.split('\n')
+		for line in logo_lines:
+			print(' ' * int(space)  + line)
+
 
 # if __name__ == '__main__':
 try:
