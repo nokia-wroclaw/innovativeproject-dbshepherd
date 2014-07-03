@@ -6,6 +6,7 @@ from ssh_tunnelmanager import TunnelManager
 import os
 import common
 from mod_core import ParseArgsException, ModuleCore
+from kp import KeePassError, get_password 
 
 conn = common.conn
 manager = TunnelManager()
@@ -38,7 +39,8 @@ class Shell(ModuleCore):
 	def __init__(self):
 		super().__init__()
 		self.warn = False
-
+		self.master = None
+		
 		self.prompt = "#>"
 		self.modules = []
 
@@ -159,11 +161,22 @@ class Shell(ModuleCore):
 				pass
 		pass
 
-	def connect_command_builder(self,connection, perm):
+	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
+	def get_password(self, alias):
+		file = "keys.kdb"
+		if self.master == None:
+			raise KeePassError("Master Password Not Set")
+		try:
+			return get_password(file, self.master, alias)
+		except KeePassError as e:
+			print (e)
+			raise e
+			
+	def connect_command_builder(self,connection, perm): # KeyValue
 		command = connection["adress"] + "_" + connection["user"]+ "_" + \
-					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
-		return command
-
+					self.get_password(connection["passwd"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+		return command	
+	
 	def connectList(self, listFile):
 		try:
 			conf = ConfigManager(listFile)

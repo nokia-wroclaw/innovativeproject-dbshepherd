@@ -42,7 +42,11 @@ class ModuleCore(cmd.Cmd):
 
 		except ParseArgsException as e:
 			print(e)
-
+	
+	def do_setMaster(self,args):
+		"Set master password"
+		from getpass import getpass
+		self.master = getpass("Input your master password: ")
 
 	def do_exit(self, *args):
 		return True

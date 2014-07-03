@@ -7,14 +7,12 @@ class KeePassError(Exception):
 def get_password(file, masterpass, alias):
 	db = kpdb.Database(file, masterpass)
 	ret = ""
-	print(db)
+	#print(db)
 	for entry in db.entries:
-		if alias == entry.username:
+		if alias == entry.title:
 			ret = entry.password
 	if ret == "":
 		raise KeePassError(alias + " not present in db")
 	else:
 		return ret
-		
-			
-get_password ("keys.kdb", "nsnqwerty", "dbshepherd")
+#get_password ("keys.kdb", "nsnqwerty", "dbshepherd")
