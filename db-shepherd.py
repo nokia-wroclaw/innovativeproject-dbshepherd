@@ -39,15 +39,17 @@ class Shell(ModuleCore):
 		super().__init__()
 		self.warn = False
 
-	prompt = "#>"
-	modules = []
+		self.prompt = "#>"
+		self.modules = []
 
-	try:
-		loader = ConfigManager("modules.yaml").get_list()
-		for module_name in loader:
-			modules.append(module_name)
-	except ConfigManagerError as e:
-		print(e)
+		try:
+			loader = ConfigManager("modules.yaml").get_list()
+			for module_name in loader:
+				self.modules.append(module_name)
+		except ConfigManagerError as e:
+			print(e)
+
+
 
 	def do_exit(self, *args):
 		"Exit db-shepherd"
@@ -141,7 +143,22 @@ class Shell(ModuleCore):
 		else:
 			completions = [f for f in self.modules if f.startswith(text)]
 		return completions	
-		
+
+	def exec_on_config(self, fun, args, link): # link - file.server.base
+		if link == '': # wykonaj na wszystkich plikach
+
+			pass
+		else:
+			ln = link.split('.')
+			params = len(ln)
+			if params == 1:
+				pass
+			elif params == 2:
+				pass
+			elif params == 3:
+				pass
+		pass
+
 	def connect_command_builder(self,connection, perm):
 		command = connection["adress"] + "_" + connection["user"]+ "_" + \
 					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm

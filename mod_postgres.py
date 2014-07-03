@@ -195,7 +195,7 @@ class Postgres(ModuleCore):
 						stdout += cmd
 						cmd = channel.recv(256)
 					file = open(dump_file_name, 'w')
-					file.write(stdout.decode())
+					file.write(stdout)
 					file.close()
 				else:
 					if self.warn == True:
