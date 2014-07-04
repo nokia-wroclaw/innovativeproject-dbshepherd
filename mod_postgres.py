@@ -254,57 +254,65 @@ class Postgres(ModuleCore):
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
 			print('--------------------')
+# ----------------------------------------------------------------------------------------------------------------------
 
+	def local_restore(self, db_name, db_user, db_pass, host, port, file_name, type = 'sql'):
+		if type == 'tar': #jeżeli restorujemy tar'a
+			restorer = "pg_restore -U %s -d %s -h %s -p %s"
+			command = restorer % (db_user, db_name, host, port)
+			os.putenv('PGPASSWORD', db_pass)
 
-	def local_restore(self, db_name, db_user, db_pass, host, port, file_name):
-		pass
-		# os.putenv('PGPASSWORD', db_pass)
-		# dumper = "psql %s -U %s -h %s -p %s"
-		# command = dumper % (db_name, db_user, host)
-		# client = paramiko.SSHClient()
-		# client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		# client.connect(conn["adress"], username=conn["user"] ,password=conn["passwd"], port=22)
-		# channel = client.get_transport().open_session()
-		#
-		#
-		# channel.exec_command(command)
-		#
-		# stderr = b''
-		# cmd = channel.recv_stderr(256)
-		# while cmd != b'':
-		# 	stderr += cmd
-		# 	cmd = channel.recv_stderr(256)
-		#
-		# if stderr == b'':
-		# 	stdout = b''
-		# 	cmd = channel.recv(256)
-		# 	while cmd != b'':
-		# 		stdout += cmd
-		# 		cmd = channel.recv(256)
-		# 	file = open(dump_file_name, 'w')
-		# 	file.write(stdout.decode())
-		# 	file.close()
+			bytes_read = open(file_name, "rb")
 
-	def restore(self, file_name, serv_name, base_name, dump_file):
-		with open (dump_file, "r") as myfile:
-			data=myfile.read()
+			try:
+				proc = Popen(command, stdout=PIPE, stderr=PIPE, stdin=bytes_read)
+			except FileNotFoundError:
+				raise PostgressError(" ERROR: pg_restore not found")
 
+			stderr = b'';
+			for line in proc.stderr:
+				stderr += line
+
+			if stderr != b'':
+				raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
+		else:
+			restorer = "psql -U %s -d %s -h %s -p %s"
+			command = restorer % (db_user, db_name, host, port)
+			os.putenv('PGPASSWORD', db_pass)
+
+			bytes_read = open(file_name, "rb")
+
+			try:
+				proc = Popen(command, stdout=PIPE, stderr=PIPE, stdin=bytes_read)
+			except FileNotFoundError:
+				raise PostgressError(" ERROR: pg_restore not found")
+
+			stderr = b'';
+			for line in proc.stderr:
+				stderr += line
+
+			if stderr != b'':
+				raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
+			pass
+
+	def remote_restore(self, db_name, db_user, db_pass, con_user, con_pass, host, sshport, remoteport, file_name, type = 'sql'):
+		restorer = "pg_restore -U %s -d %s -h %s -p %s"
+
+		if type == 'tar':
+			os.putenv('PGPASSWORD', db_pass)
+			command = restorer % (db_user, db_name, host, remoteport)
+			client = paramiko.SSHClient()
+			client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+			client.connect(host, username=con_user ,password=con_pass, port=sshport)
+			channel = client.get_transport().open_session()
+			channel.exec_command(command)
 
 
 	def do_restore(self, args):
-		try:
-			(values, values_num) = self.parse_args(args, 2)
-			if len(values) == 2: #Jeżeli 2 argumenty (na wybranym konfigu)
-				conf_args = values[0].split('.')
-				if len(conf_args)== 3:
-					self.restore(conf_args[0], conf_args[1], conf_args[2], values[1])
-				else:
-					print('ERROR!!!!!')
+		# self.local_restore('dbshepherd', 'dbshepherd', 'dbshepherd_host', 'antivps.pl', 5432, 'test.tar', type = 'sql')
+		self.remote_restore('dbshepherd_host', 'dbshepherd', 'dbshepherd', 'dbshepherd', 'dbshepherd', 'antivps.pl', 22, 5432, 'test.tar', 'tar')
+		pass
 
-
-		except Exception as e:
-			print(type(e))
-			print(e)
 
 class PostgressError(Exception):
 	def __init__(self, value):
