@@ -4,6 +4,10 @@ from mod_postgres import Postgres
 
 test1_dump_file = "test1_dump"
 
+def setUpModule():
+	print("PostgresTest")
+
+
 class PostgresTest(unittest.TestCase):
 
 	def test1_dump(self):

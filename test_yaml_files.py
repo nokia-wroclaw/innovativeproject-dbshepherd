@@ -2,6 +2,8 @@ import os
 import unittest
 from configmanager import ConfigManager, ConfigManagerError
 
+def setUpModule():
+	print("YamlTest")
 
 def connect_command_builder(connection, perm):
 		command = connection["adress"] + "_" + connection["user"]+ "_" + \
@@ -42,7 +44,7 @@ class YamlTest(unittest.TestCase):
 		for file in lists:
 			try:
 				yaml = ConfigManager("config/"+file+".yaml")
-				for server in yaml.getList():
+				for server in yaml.get_list():
 					try:
 						connection = yaml.get(server)["connection"]
 						test = connection["adress"]

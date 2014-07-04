@@ -124,8 +124,14 @@ class ModuleCore(cmd.Cmd):
 	def do_setMaster(self,args):
 		"Set master password"
 		from getpass import getpass
-		self.master = getpass("Input your master password: ")
+		import sys
+		if sys.stdin.isatty(): # jezeli jako shell
+			p = getpass('Enter Master Password: ')
+		else:
+			p = sys.stdin.readline().rstrip()
+		self.master = p
 
+		
 	def do_exit(self, *args):
 		return True
 

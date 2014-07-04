@@ -118,9 +118,12 @@ class Shell(ModuleCore):
 		"Create permament ssh tunnel\n\tUsage:\tperm <list>.<server>\t(make permament tunnel to server)"
 		params = arg.split(".")
 		conf = ConfigManager("config/"+params[0]+".yaml")
-		connection =  conf.get(params[1])["connection"]
-		ret = send_command(self.connect_command_builder(connection,"yes"))
-		print (ret)
+		try:
+			connection =  conf.get(params[1])["connection"]
+			ret = send_command(self.connect_command_builder(connection,"yes"))
+			print (ret)
+		except KeePassError as e:
+			print("Connecting to" , connection["adress"], "[", e, "]")
 
 	def do_disconnect(self, arg):
 		"""Close tunnel to server\n\tUsage:\tdisconnect;server:port(;server:port;...)

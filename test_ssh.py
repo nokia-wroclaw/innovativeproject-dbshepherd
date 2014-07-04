@@ -11,7 +11,7 @@ master = None
 def setUpModule():
 	global master
 	global conn
-	
+	print("SShTest")
 	try:
 		conn = connection.Connection()
 		conn.start()
