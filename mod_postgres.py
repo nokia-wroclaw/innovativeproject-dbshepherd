@@ -8,6 +8,10 @@ import paramiko
 import datetime
 from subprocess import Popen, PIPE
 
+import sys
+import io
+import select
+
 class Postgres(ModuleCore):
 	def __init__(self, completekey='tab', stdin=None, stdout=None):
 		super().__init__()
@@ -274,7 +278,7 @@ class Postgres(ModuleCore):
 				stderr += line
 
 			if stderr != b'':
-				raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
+				raise PostgressError(stderr.decode('utf8', 'ignore'))
 		else:
 			restorer = "psql -U %s -d %s -h %s -p %s"
 			command = restorer % (db_user, db_name, host, port)
@@ -292,26 +296,47 @@ class Postgres(ModuleCore):
 				stderr += line
 
 			if stderr != b'':
-				raise PostgressError(stderr.decode('iso_8859_2', 'ignore'))
-			pass
+				raise PostgressError(stderr.decode('utf8', 'ignore'))
 
 	def remote_restore(self, db_name, db_user, db_pass, con_user, con_pass, host, sshport, remoteport, file_name, type = 'sql'):
 		restorer = "pg_restore -U %s -d %s -h %s -p %s"
 
-		if type == 'tar':
-			os.putenv('PGPASSWORD', db_pass)
-			command = restorer % (db_user, db_name, host, remoteport)
-			client = paramiko.SSHClient()
-			client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-			client.connect(host, username=con_user ,password=con_pass, port=sshport)
-			channel = client.get_transport().open_session()
-			channel.exec_command(command)
+
+		# os.putenv('PGPASSWORD', db_pass)
+		client = paramiko.SSHClient()
+		client.load_system_host_keys()
+		client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		client.connect(host, username=con_user ,password=con_pass, port=sshport)
+		channel = client.get_transport().open_session()
+		channel.exec_command("pg_dump -W")
+		channel.send('pass\n'.encode())
+		channel.send('pass\n'.encode())
+
+
+		stderr = b''
+		cmd = channel.recv_stderr(1)
+		while cmd != b'':
+			stderr += cmd
+			cmd = channel.recv_stderr(1)
+
+		if stderr == b'':
+			stdout = b''
+			cmd = channel.recv(1)
+			while cmd != b'':
+				stdout += cmd
+				cmd = channel.recv(1)
+
+		print(stderr.decode('utf-8', 'ignore'), stdout.decode('utf-8', 'ignore'))
+
+
 
 
 	def do_restore(self, args):
-		# self.local_restore('dbshepherd', 'dbshepherd', 'dbshepherd_host', 'antivps.pl', 5432, 'test.tar', type = 'sql')
-		self.remote_restore('dbshepherd_host', 'dbshepherd', 'dbshepherd', 'dbshepherd', 'dbshepherd', 'antivps.pl', 22, 5432, 'test.tar', 'tar')
-		pass
+		try:
+			# self.local_restore('postgres', 'postgres', 'root', '127.0.0.1', 5432, 'local.sql', type = 'sql')
+			self.remote_restore('postgres', 'postgres', 'root', 'seba', 'seba', '127.0.0.1', 23, 5432, 'proba.tar', 'tar')
+		except PostgressError as e:
+			print(e)
 
 
 class PostgressError(Exception):
