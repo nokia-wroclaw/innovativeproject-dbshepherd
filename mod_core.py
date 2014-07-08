@@ -1,6 +1,9 @@
 import cmd
 import re
+import sys
 from configmanager import  ConfigManager, ConfigManagerError
+from getpass import getpass
+
 
 
 class ParseArgsException(Exception):
@@ -8,6 +11,17 @@ class ParseArgsException(Exception):
 		self.msg = msg
 
 class ModuleCore(cmd.Cmd):
+	
+	def precmd(self, line):
+		if not sys.stdin.isatty():
+			print(line)
+		return line
+	
+	def postcmd(self, stop, line):
+		if not sys.stdin.isatty():
+			print("")
+		return stop
+		
 	def set_name(self, name):
 		self.prompt = "[" + name + "]>"
 
@@ -123,8 +137,6 @@ class ModuleCore(cmd.Cmd):
 	
 	def do_setMaster(self,args):
 		"Set master password"
-		from getpass import getpass
-		import sys
 		if sys.stdin.isatty(): # jezeli jako shell
 			p = getpass('Enter Master Password: ')
 		else:

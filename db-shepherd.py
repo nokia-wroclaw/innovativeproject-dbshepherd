@@ -53,7 +53,6 @@ class Shell(ModuleCore):
 			print(e)
 
 
-
 	def do_exit(self, *args):
 		"Exit db-shepherd"
 		return True
