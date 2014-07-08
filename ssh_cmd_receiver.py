@@ -1,4 +1,5 @@
 import threading
+import logging
 from time import sleep
 import ssh_tunnelmanager
 import ssh_common
@@ -15,7 +16,7 @@ class CmdReceiver(threading.Thread):
 #adres_user_password_sshport_remoteport
 	def run(self):
 		running = 1
-		print("run_cli")
+		logging.debug("run_cli")
 		try:
 			while running:
 				data = self.client.recv(self.size)
@@ -32,7 +33,7 @@ class CmdReceiver(threading.Thread):
 							for tunnel in tunnels_to_disconnect:
 								try:
 									tunnel_host, tunnel_port = tunnel.split(":")
-									print("Disconnecting ", tunnel_host, tunnel_port)
+									logging.info("Disconnecting ", tunnel_host, tunnel_port)
 									#See if it is active? Kill it anyway?
 
 									for t in self.t_manager.lista:
@@ -78,10 +79,9 @@ class CmdReceiver(threading.Thread):
 								else:
 									tunnel = self.t_manager.connect(adr, usr, passwd, int(remote_port), int(ssh)) #, keypath="")
 									if tunnel != None:
+										logging.debug("Waiting...")
 										for num in range(0,20):
 											sleep(1)
-											#print(tunnel.status)
-											print("Waiting...")
 											if tunnel.status == "ok":
 												break
 											if tunnel.status == "bad":
@@ -92,18 +92,15 @@ class CmdReceiver(threading.Thread):
 							elif permament == "yes":
 								if self.t_manager.is_alive(adr,remote_port):
 									ret = "exist-non-permament"
-									#self.client.send(ret.encode("utf-8"))
-
 								elif ssh_common.permament_tunnel_manager.is_alive(adr,remote_port):
 									tunnel = ssh_common.permament_tunnel_manager.get_tunnel(adr,remote_port)
 									ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
 								else:
 									tunnel = ssh_common.permament_tunnel_manager.connect(adr, usr, passwd, int(remote_port), int(ssh)) #, keypath="")
 									if tunnel != None:
+										logging.debug("Waiting...")
 										for num in range(0,20):
 											sleep(1)
-											#print(tunnel.status)
-											print("Waiting...")
 											if tunnel.status == "ok":
 												break
 											if tunnel.status == "bad":
@@ -117,9 +114,9 @@ class CmdReceiver(threading.Thread):
 					
 					if ret == "Unknown Error" and tunnel != None:
 						ret =  tunnel.status + "_" + tunnel.remote_host + "_" + str(tunnel.local_port)
-					
-					print("D: ",cmd)
-					print(ret)
+						
+					logging.debug("C: " + "_".join(cmd))
+					logging.debug("R: " + ret)
 					self.client.send(ret.encode("utf-8"))
 					#Chwilowo clean po kazdym poleceniu
 					self.t_manager.clean()
@@ -130,4 +127,4 @@ class CmdReceiver(threading.Thread):
 		except ConnectionResetError as e:
 			for tunnel in self.t_manager.lista:
 				tunnel.stop()
-			print("Połączenie z clientem zostało przerwane");
+			logging.info("Połączenie z clientem zostało przerwane");

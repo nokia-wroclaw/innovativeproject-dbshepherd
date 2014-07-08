@@ -1,6 +1,7 @@
 import select
 import paramiko
 import threading
+import logging
 from socket import error
 try:
 	import SocketServer
@@ -21,13 +22,12 @@ class Handler(SocketServer.BaseRequestHandler):
 		try:
 			chan = self.ssh_transport.open_channel(b'direct-tcpip',('localhost', self.chain_port),('localhost', self.chain_localport))
 		except Exception as e:
-			print(e)
-			print('Incoming request to %s:%d failed: %s' % (self.chain_host,self.chain_port,repr(e)))
+			logging.error('Incoming request to %s:%d failed: %s' % (self.chain_host,self.chain_port,repr(e)))
 			return
 		if chan is None:
-			print('Incoming request to %s:%d was rejected by the SSH server.' % (self.chain_host, self.chain_port))
+			logging.error('Incoming request to %s:%d was rejected by the SSH server.' % (self.chain_host, self.chain_port))
 			return
-		print('Connected!  Tunnel open %r -> %r -> %r' % (self.request.getpeername(), chan.getpeername(), (self.chain_host, self.chain_port)))
+		logging.info('Connected!  Tunnel open %r -> %r -> %r' % (self.request.getpeername(), chan.getpeername(), (self.chain_host, self.chain_port)))
 		while True:
 			r, w, x = select.select([self.request, chan], [], [])
 			if self.request in r:
@@ -44,7 +44,7 @@ class Handler(SocketServer.BaseRequestHandler):
 		peername = self.request.getpeername()
 		chan.close()
 		self.request.close()
-		print('Tunnel closed from %r' % (peername,))
+		logging.info('Tunnel closed from %r' % (peername,))
 
 
 def forward_tunnel(local_port, remote_host, remote_port, transport):
@@ -90,7 +90,7 @@ class Tunnel():
 		self.passwd = passwd
 		self.user_name = user_name
 		try:
-			print("Connecting to", remote_host)
+			logging.info("Connecting to " + remote_host)
 			self.client.connect(remote_host, username=user_name, password=passwd, port=ssh_port)
 			self.th = TunnelThread(local_port, remote_host, remote_port, self.client)
 			self.th.start()

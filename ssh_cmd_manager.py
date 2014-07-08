@@ -1,6 +1,7 @@
 import select
 import socket
 import threading
+import logging
 from ssh_cmd_receiver import CmdReceiver
 import ssh_tunnelmanager
 import ssh_common
@@ -18,6 +19,23 @@ class CmdManager(threading.Thread):
 		self.server = None
 		self.threads = []
 
+		#String zawierajacy format logów"
+		fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+		#Init loggera
+		#logl = getattr(logging, loglevel.upper(), None)
+		#if not isinstance(numeric_level, int):
+		#	logl = logging.INFO
+		logging.basicConfig(filename='ssh_shepherd.log',level=logging.DEBUG, format=fmt)
+
+		#Jako że używamy filename. musimy dodać handler do stdout
+		stream = logging.StreamHandler()
+		formatter = logging.Formatter(fmt)
+		stream.setFormatter(formatter)
+		logging.getLogger().addHandler(stream)
+		#Ochodzą nas nasze loggery tylko
+		for handler in logging.root.handlers:
+			handler.addFilter(logging.Filter('root'))
+		
 	def open_socket(self):
 		try:
 			self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,7 +43,7 @@ class CmdManager(threading.Thread):
 			self.server.listen(5)
 
 		except socket.error as e:
-			print(e)
+			logger.error(e)
 
 	def run(self):
 		self.open_socket()
@@ -40,11 +58,11 @@ class CmdManager(threading.Thread):
 
 			for s in ready[0]:
 				if s == self.server:
-					print("connection")
+					logging.debug("connection")	
 					connection = self.server.accept()
-					print("create")
+					logging.debug("create")
 					c = CmdReceiver(connection[0], connection[1])
-					print("start")
+					logging.debug("start")
 					self.threads.append(c)
 					c.start();
 		self.server.close()
@@ -59,9 +77,9 @@ class PermTunnelChecker(threading.Thread):
 	def run(self):
 		self.running = True
 		while self.running:
-			print("checking permament tunnels...")
+			sleep(60)
+			logging.info("checking permament tunnels...")
 			for t in ssh_common.permament_tunnel_manager.lista:
 				t.is_alive()
 				if t.status == "bad":
 					t.restart()
-			sleep(60)

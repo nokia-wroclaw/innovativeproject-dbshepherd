@@ -1,7 +1,7 @@
 import paramiko
 import time
 import sys
-
+import logging
 import threading
 import configmanager
 from socket import error
@@ -30,7 +30,7 @@ class TunnelManager(object):
 				self.lista.append(w)
 				return self.lista[index]
 			except TunnelException as e:
-				print(e)
+				logging.error(e)
 				return None
 		except TunnelManagerException as e:
 			raise TunnelManagerException(e)
@@ -48,11 +48,11 @@ class TunnelManager(object):
 		return None
 
 	def clean(self):
-		print("clean")
-		print(len(self.lista))
+		logging.debug("clean")
+		logging.debug(len(self.lista))
 		for tunnel in self.lista:
 			if (tunnel.status == "bad" or tunnel.status == "unknown" ):
 				#blokowanie?
 				tunnel.stop()
 				del self.lista[self.lista.index(tunnel)]
-		print(len(self.lista))
+		logging.debug(len(self.lista))
