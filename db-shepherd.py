@@ -52,7 +52,6 @@ class Shell(ModuleCore):
 		except ConfigManagerError as e:
 			print(e)
 
-
 	def do_exit(self, *args):
 		"Exit db-shepherd"
 		return True
