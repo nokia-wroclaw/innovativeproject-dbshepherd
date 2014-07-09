@@ -42,6 +42,7 @@ class Shell(ModuleCore):
 		self.master = None
 		self.do_logo()
 
+
 		self.new_prompt = "#>"
 		self.modules = []
 

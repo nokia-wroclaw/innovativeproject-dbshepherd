@@ -14,6 +14,9 @@ class ModuleCore(cmd.Cmd):
 	#Prompt with path
 	new_prompt = ''
 
+	#defaults
+	ruler = '-'
+
 	#Completions
 	directories = []
 	file_server_database = []
