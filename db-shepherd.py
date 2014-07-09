@@ -166,8 +166,15 @@ class Shell(ModuleCore):
 			raise e
 
 	def connect_command_builder(self,connection, perm): # KeyValue
-		command = connection["adress"] + "_" + connection["user"]+ "_" + \
-					self.get_password(connection["passwd"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+		try:
+			command = connection["adress"] + "_" + connection["user"]+ "_" + \
+					self.get_password(connection["keepass"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+		except (KeyError, KeePassError) as e:
+			try:
+				command = connection["adress"] + "_" + connection["user"]+ "_" + \
+					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+			except KeyError as e:
+				raise KeePassError("No KP or Passwd")
 		return command
 
 	def connectList(self, listFile):

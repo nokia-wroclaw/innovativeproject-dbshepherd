@@ -22,9 +22,6 @@ class CmdManager(threading.Thread):
 		#String zawierajacy format logów"
 		fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 		#Init loggera
-		#logl = getattr(logging, loglevel.upper(), None)
-		#if not isinstance(numeric_level, int):
-		#	logl = logging.INFO
 		logging.basicConfig(filename='ssh_shepherd.log',level=logging.DEBUG, format=fmt)
 
 		#Jako że używamy filename. musimy dodać handler do stdout

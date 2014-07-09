@@ -33,7 +33,7 @@ class CmdReceiver(threading.Thread):
 							for tunnel in tunnels_to_disconnect:
 								try:
 									tunnel_host, tunnel_port = tunnel.split(":")
-									logging.info("Disconnecting ", tunnel_host, tunnel_port)
+									logging.info("Disconnecting {0} {1}".format( str(tunnel_host) , str(tunnel_port)))
 									#See if it is active? Kill it anyway?
 
 									for t in self.t_manager.lista:
