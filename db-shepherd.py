@@ -42,8 +42,10 @@ class Shell(ModuleCore):
 		self.master = None
 		self.do_logo()
 
-		self.prompt = "#>"
+		self.new_prompt = "#>"
 		self.modules = []
+
+		self.do_cd('.')
 
 		try:
 			loader = ConfigManager("modules.yaml").get_list()
@@ -59,6 +61,7 @@ class Shell(ModuleCore):
 	def do_module(self, module):
 		"Load module\n\tUsage:\t module <Module>\t(load and use Module)"
 		set_module(module, self.warn)
+		self.do_cd('.')
 
 	def do_connect(self, arg):
 		"""Create ssh tunnels\n\tUsage:\tconnect\t\t\t(connect using all server lists)

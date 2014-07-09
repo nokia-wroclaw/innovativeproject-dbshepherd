@@ -3,15 +3,16 @@ import re
 import sys
 from configmanager import  ConfigManager, ConfigManagerError
 from getpass import getpass
-
-
+import os
+import re
 
 class ParseArgsException(Exception):
 	def __init__(self, msg):
 		self.msg = msg
 
 class ModuleCore(cmd.Cmd):
-	
+	new_prompt = ''
+	directories = ['dupa']
 	def precmd(self, line):
 		if not sys.stdin.isatty():
 			print(line)
@@ -23,7 +24,7 @@ class ModuleCore(cmd.Cmd):
 		return stop
 		
 	def set_name(self, name):
-		self.prompt = "[" + name + "]>"
+		self.new_prompt = "[" + name + "]>"
 
 	def parse_args(self, string="", n=0, m=0):
 		list = re.findall('"+.*"+|[a-zA-Z0-9!@#$%^&*()_+-,./<>?]+', string)
@@ -112,6 +113,44 @@ class ModuleCore(cmd.Cmd):
 					print(e)
 				except KeyError as e:
 					print(e, "is not exist")
+
+	def get_shortpath(self):
+		path = os.getcwd()
+		separator = ''
+		if '\\' in path:
+			separator = '\\'
+		else:
+			separator = '/'
+		start = path.find(separator)
+		end = path.rfind(separator, 0, len(path)-1)
+		if start < end:
+			return (path[0:start+1] + '...' + path[end:])
+		else:
+			return (path)
+
+	def complete_cd(self, text, line, begidx, endidx):
+		if not text:
+			completions = self.directories[:]
+		else:
+			completions = [f for f in self.directories if f.startswith(text)]
+		return completions
+
+	def do_cd(self, args):
+		try:
+			os.chdir(args)
+			self.prompt = self.get_shortpath() + ' ' + self.new_prompt
+
+			self.directories = []
+			for name in os.listdir('.'):
+				if os.path.isdir(os.path.join('.', name)):
+					self.directories.append(name)
+
+
+		except FileNotFoundError as e:
+			print(e)
+
+	def do_path(self, args):
+		print(os.getcwd())
 
 	def do_warn(self, args):
 		"""warn <on/off>"""

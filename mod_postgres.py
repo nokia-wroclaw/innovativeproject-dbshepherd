@@ -15,6 +15,7 @@ class Postgres(ModuleCore):
 		super().__init__()
 		self.set_name('Postgres')
 		self.warn = False
+		self.do_cd('.')
 
 	def get_local_version(self, cmd):
 		proc = Popen(cmd , stdout=PIPE, stderr=PIPE, shell=True)
