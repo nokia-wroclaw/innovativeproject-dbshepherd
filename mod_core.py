@@ -11,8 +11,25 @@ class ParseArgsException(Exception):
 		self.msg = msg
 
 class ModuleCore(cmd.Cmd):
+	#Prompt with path
 	new_prompt = ''
-	directories = ['dupa']
+
+	#Completions
+	directories = []
+	file_server_database = []
+	file_server = []
+
+	configs = ConfigManager().get_config_list()
+	for conf in configs:
+		file_server_database.append(conf)
+		file_server.append(conf)
+		for srv in ConfigManager('config/' + conf + '.yaml').get_all():
+			file_server_database.append(conf + '.' + srv)
+			file_server.append(conf + '.' + srv)
+			for db in ConfigManager('config/' + conf + '.yaml').get(srv)['databases']:
+				file_server_database.append(conf + '.' + srv + '.' + db)
+
+
 	def precmd(self, line):
 		if not sys.stdin.isatty():
 			print(line)

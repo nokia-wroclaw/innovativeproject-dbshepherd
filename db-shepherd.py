@@ -218,6 +218,13 @@ class Shell(ModuleCore):
 				
 		print(connection_list)
 
+	def complete_connect(self, text, line, begidx, endidx):
+		if not text:
+			completions = self.file_server[:]
+		else:
+			completions = [f for f in self.file_server if f.startswith(text)]
+		return completions
+
 	def do_logo(self, args = ''):
 		import os
 		ts = os.get_terminal_size()

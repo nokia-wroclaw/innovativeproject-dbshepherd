@@ -410,6 +410,33 @@ class Postgres(ModuleCore):
 		except PostgressError as e:
 			print(e)
 
+	def complete_query(self, text, line, begidx, endidx):
+		if not text:
+			completions = self.file_server_database[:]
+		else:
+			completions = [f for f in self.file_server_database if f.startswith(text)]
+		return completions
+
+	def complete_dump(self, text, line, begidx, endidx):
+		if not text:
+			completions = self.file_server_database[:]
+		else:
+			completions = [f for f in self.file_server_database if f.startswith(text)]
+		return completions
+
+	def complete_dump_tar(self, text, line, begidx, endidx):
+		if not text:
+			completions = self.file_server_database[:]
+		else:
+			completions = [f for f in self.file_server_database if f.startswith(text)]
+		return completions
+
+	def complete_restore(self, text, line, begidx, endidx):
+		if not text:
+			completions = self.file_server_database[:]
+		else:
+			completions = [f for f in self.file_server_database if f.startswith(text)]
+		return completions
 
 class PostgressError(Exception):
 	def __init__(self, value):
