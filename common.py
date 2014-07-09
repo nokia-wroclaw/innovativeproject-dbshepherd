@@ -1,5 +1,9 @@
 import connection
 conn = None
+current_dir = ''
+
+def get_cdir():
+	return current_dir
 
 try:
     conn = connection.Connection()

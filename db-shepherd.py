@@ -42,10 +42,10 @@ class Shell(ModuleCore):
 		self.master = None
 		self.do_logo()
 
-
 		self.new_prompt = "#>"
 		self.modules = []
 
+		common.current_dir = os.getcwd()
 		self.do_cd('.')
 
 		try:

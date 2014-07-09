@@ -5,6 +5,7 @@ from configmanager import  ConfigManager, ConfigManagerError
 from getpass import getpass
 import os
 import re
+import common
 
 class ParseArgsException(Exception):
 	def __init__(self, msg):
@@ -135,7 +136,7 @@ class ModuleCore(cmd.Cmd):
 					print(e, "is not exist")
 
 	def get_shortpath(self):
-		path = os.getcwd()
+		path = common.get_cdir()
 		separator = ''
 		if '\\' in path:
 			separator = '\\'
@@ -156,21 +157,28 @@ class ModuleCore(cmd.Cmd):
 		return completions
 
 	def do_cd(self, args):
+		c_dir = os.getcwd()
 		try:
+			os.chdir(common.get_cdir())
 			os.chdir(args)
+			common.current_dir = os.getcwd()
+
+
+
 			self.prompt = self.get_shortpath() + ' ' + self.new_prompt
 
 			self.directories = []
-			for name in os.listdir('.'):
-				if os.path.isdir(os.path.join('.', name)):
+			for name in os.listdir(common.get_cdir()):
+				if os.path.isdir(os.path.join(common.get_cdir(), name)):
 					self.directories.append(name)
 
-
+			os.chdir(c_dir)
 		except FileNotFoundError as e:
+			os.chdir(c_dir)
 			print(e)
 
 	def do_path(self, args):
-		print(os.getcwd())
+		print(common.get_cdir())
 
 	def do_warn(self, args):
 		"""warn <on/off>"""
