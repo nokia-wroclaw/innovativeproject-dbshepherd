@@ -196,9 +196,12 @@ class Postgres(ModuleCore):
 
 			os.putenv('PGPASSWORD', db_pass)
 			try:
+				common.set_cdir_and_store()
 				proc = Popen(command, stdout=PIPE, stderr=PIPE)
 			except FileNotFoundError:
 				raise PostgressError(" ERROR: pg_dump not found")
+			finally:
+				common.restore_cdir()
 			out, err = proc.communicate()
 
 			if err != b'':
@@ -225,12 +228,10 @@ class Postgres(ModuleCore):
 			print('ERROR:',e, end='')
 			print('--------------------')
 		except Exception as e:
-			print(type(e))
 			print(e)
 
 	def do_dump(self, args):
 		try:
-			common.set_cdir_and_store()
 			(values, num) = self.parse_args(args, 1, 2)
 
 			if num == 2:
@@ -253,7 +254,6 @@ class Postgres(ModuleCore):
 
 	def do_dump_tar(self, args):
 		try:
-			common.set_cdir_and_store()
 			(values, num) = self.parse_args(args, 1, 2)
 
 			if num == 2:
