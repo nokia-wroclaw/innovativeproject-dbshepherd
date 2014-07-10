@@ -24,8 +24,6 @@ class ModuleCore(cmd.Cmd):
 		else:
 			self.prompt_sign = '->'
 
-		self.do_cd('.')
-
 		#defaults
 		self.ruler = '-'
 
@@ -33,6 +31,8 @@ class ModuleCore(cmd.Cmd):
 		self.directories = []
 		self.file_server_database = []
 		self.file_server = []
+
+		self.do_cd('.')
 
 		configs = ConfigManager().get_config_list()
 		for conf in configs:
@@ -164,18 +164,21 @@ class ModuleCore(cmd.Cmd):
 		return completions
 
 	def do_cd(self, args):
-		try:
-			common.chdir(args)
-			self.prompt = self.get_shortpath() + ' ' + self.prompt_sign
+		if args == '':
+			print(common.get_cdir())
+		else:
+			try:
+				common.chdir(args)
+				self.prompt = self.get_shortpath() + ' ' + self.prompt_sign
 
-			self.directories = []
-			for name in os.listdir(common.get_cdir()):
-				if os.path.isdir(os.path.join(common.get_cdir(), name)):
-					self.directories.append(name)
-		except FileNotFoundError as e:
-			print(e)
-		finally:
-			pass
+				self.directories = []
+				for name in os.listdir(common.get_cdir()):
+					if os.path.isdir(os.path.join(common.get_cdir(), name)):
+						self.directories.append(name)
+			except FileNotFoundError as e:
+				print(e)
+			finally:
+				pass
 
 	def do_pwd(self, args):
 		print(common.get_cdir())

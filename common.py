@@ -22,10 +22,12 @@ def chdir(dir):
 
 
 def set_cdir_and_store():
+	global app_dir
 	app_dir = os.getcwd()
-	os.chdir(app_dir)
+	os.chdir(current_dir)
 
 def restore_cdir():
+	global app_dir
 	os.chdir(app_dir)
 
 try:

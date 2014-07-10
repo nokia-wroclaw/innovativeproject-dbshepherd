@@ -149,7 +149,7 @@ class Postgres(ModuleCore):
 
 	def exe_dump(self, file_name, serv_name, base_name, backup_name, type):
 		date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-		dump_file_name = 'dump/'+backup_name+'_'+file_name+'_'+serv_name+'_'+base_name+'_'+date
+		dump_file_name = backup_name+'_'+file_name+'_'+serv_name+'_'+base_name+'_'+date
 		dumper = """pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
 
 		try:
@@ -208,34 +208,29 @@ class Postgres(ModuleCore):
 			print('--------------------')
 			print('ERROR: Connection Refused by host')
 			print('--------------------')
-			return False
 		except TimeoutError:
 			print('--------------------')
 			print('ERROR: Connection timeout')
 			print('--------------------')
-			return False
 		except paramiko.ssh_exception.AuthenticationException:
 			print('--------------------')
 			print('ERROR: Authentication problem')
 			print('--------------------')
-			return False
 		except KeyError as e:
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
 			print('--------------------')
-			return False
 		except PostgressError as e:
 			print('--------------------')
 			print('ERROR:',e, end='')
 			print('--------------------')
-			return False
 		except Exception as e:
 			print(type(e))
 			print(e)
-			return False
 
 	def do_dump(self, args):
 		try:
+			common.set_cdir_and_store()
 			(values, num) = self.parse_args(args, 1, 2)
 
 			if num == 2:
@@ -253,9 +248,12 @@ class Postgres(ModuleCore):
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
 			print('--------------------')
+		finally:
+			common.restore_cdir()
 
 	def do_dump_tar(self, args):
 		try:
+			common.set_cdir_and_store()
 			(values, num) = self.parse_args(args, 1, 2)
 
 			if num == 2:
@@ -273,6 +271,8 @@ class Postgres(ModuleCore):
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
 			print('--------------------')
+		finally:
+			common.restore_cdir()
 # ----------------------------------------------------------------------------------------------------------------------
 
 	def restore(self, db_name, db_user, db_pass, host, port, file_name, type = 'sql'):
@@ -281,7 +281,9 @@ class Postgres(ModuleCore):
 			command = restorer % (db_user, db_name, host, port)
 			os.putenv('PGPASSWORD', db_pass)
 
+			common.set_cdir_and_store()
 			bytes_read = open(file_name, "rb")
+			common.restore_cdir()
 
 			try:
 				proc = Popen(command, stdout=PIPE, stderr=PIPE, stdin=bytes_read)
@@ -298,7 +300,9 @@ class Postgres(ModuleCore):
 			command = restorer % (db_user, db_name, host, port)
 			os.putenv('PGPASSWORD', db_pass)
 
+			common.set_cdir_and_store()
 			bytes_read = open(file_name, "rb")
+			common.restore_cdir()
 
 			try:
 				proc = Popen(command, stdout=PIPE, stderr=PIPE, stdin=bytes_read)
@@ -353,47 +357,46 @@ class Postgres(ModuleCore):
 			print('--------------------')
 			print('ERROR: Connection Refused by host')
 			print('--------------------')
-			return False
 		except TimeoutError:
 			print('--------------------')
 			print('ERROR: Connection timeout')
 			print('--------------------')
-			return False
 		except paramiko.ssh_exception.AuthenticationException:
 			print('--------------------')
 			print('ERROR: Authentication problem')
 			print('--------------------')
-			return False
 		except KeyError as e:
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
 			print('--------------------')
-			return False
 		except PostgressError as e:
 			print('--------------------')
 			print('ERROR:',e, end='')
 			print('--------------------')
-			return False
 		except Exception as e:
-			print(type(e))
 			print(e)
-			return False
 
 	def do_restore(self, args):
 		try:
 			(values, num) = self.parse_args(args, 1, 2)
 
 			if num == 2:
+				common.set_cdir_and_store()
 				if tarfile.is_tarfile(values[1]):
 					type = 'tar'
 				else:
 					type = 'sql'
+				common.restore_cdir()
+
 				self.exec_on_config(self.exe_restore, [values[1], type], values[0], 'tree')
 			elif num == 1:
+				common.set_cdir_and_store()
 				if tarfile.is_tarfile(values[0]):
 					type = 'tar'
 				else:
 					type = 'sql'
+				common.restore_cdir()
+
 				self.exec_on_config(self.exe_restore, [values[0], type], '', 'tree')
 
 		except ConfigManagerError as e:
@@ -410,6 +413,8 @@ class Postgres(ModuleCore):
 			print(e)
 		except FileNotFoundError as e:
 			print(e)
+		finally:
+			common.restore_cdir()
 
 	def complete_query(self, text, line, begidx, endidx):
 		if not text:
