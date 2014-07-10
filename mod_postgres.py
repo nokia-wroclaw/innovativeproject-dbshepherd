@@ -34,19 +34,19 @@ class Postgres(ModuleCore):
 			return re.findall(r'\d+.\d+.\d+', cur.fetchone()[0])[0].split('.')
 		except psycopg2.Error as e:
 			print('--------------------')
-			print('Error:', e, end='')
+			print('Error:', e)
 			print('--------------------')
 		except psycopg2.Warning as w:
 			print('--------------------')
-			print('Warning:', w, end='')
+			print('Warning:', w)
 			print('--------------------')
 		except psycopg2.InterfaceError as e:
 			print('--------------------')
-			print('Error:', e, end='')
+			print('Error:', e)
 			print('--------------------')
 		except psycopg2.DatabaseError as e:
 			print('--------------------')
-			print('Error:', e, end='')
+			print('Error:', e)
 			print('--------------------')
 
 	def is_valid_versions(self, ver1, ver2):
@@ -87,19 +87,19 @@ class Postgres(ModuleCore):
 
 		except psycopg2.Error as e:
 			print('--------------------')
-			print('Error:', e, end='')
+			print('Error:', e)
 			print('--------------------')
 		except psycopg2.Warning as w:
 			print('--------------------')
-			print('Warning:', w, end='')
+			print('Warning:', w)
 			print('--------------------')
 		except psycopg2.InterfaceError as e:
 			print('--------------------')
-			print('Error:', e, end='')
+			print('Error:', e)
 			print('--------------------')
 		except psycopg2.DatabaseError as e:
 			print('--------------------')
-			print('Error:', e, end='')
+			print('Error:', e)
 			print('--------------------')
 
 	def exe_query(self, file_name, serv_name, base_name, db_query):
@@ -129,7 +129,7 @@ class Postgres(ModuleCore):
 			self.psycop_query(database["name"], database["user"], conf.get_password(serv_name + '.' + base_name), conn["adress"], conn["remoteport"], db_query)
 
 	def do_query(self, args):
-		"Do query to database\n\tUsage:\tquery 'query'\t\t (query using all server lists)\n\t\tquery list 'query'\t (query using server list)\n\t\tquery list.base 'query'\t (query using database in list)"
+		'Do query to database\n\tUsage:\tquery "query"\t\t (query using all server lists)\n\t\tquery list "query"\t (query using server list)\n\t\tquery list.base "query"\t (query using database in list)'
 		try:
 			(values, num) = self.parse_args(args, 1, 2)
 
@@ -236,15 +236,15 @@ class Postgres(ModuleCore):
 			print('--------------------')
 		except PostgressError as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 		except Exception as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 
 	def do_dump(self, args):
-		"Dump database and save with name\n\tUsage:\tdump name \t\t(dump using all server lists)\n\t\tdump list name \t\t(dump using server list)\n\t\tdump list.base name \t(dump using database in list)"
+		'Dump database and save with name\n\tUsage:\tdump name \t\t(dump using all server lists)\n\t\tdump list name \t\t(dump using server list)\n\t\tdump list.base name \t(dump using database in list)'
 		try:
 			(values, num) = self.parse_args(args, 1, 2)
 
@@ -259,7 +259,7 @@ class Postgres(ModuleCore):
 			print('--------------------')
 		except ParseArgsException as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 		except KeyError as e:
 			print('--------------------')
@@ -284,7 +284,7 @@ class Postgres(ModuleCore):
 			print('--------------------')
 		except ParseArgsException as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 		except KeyError as e:
 			print('--------------------')
@@ -395,11 +395,11 @@ class Postgres(ModuleCore):
 			print('--------------------')
 		except PostgressError as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 		except Exception as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 
 	def do_restore(self, args):
@@ -432,7 +432,7 @@ class Postgres(ModuleCore):
 			print('--------------------')
 		except ParseArgsException as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 		except KeyError as e:
 			print('--------------------')
@@ -440,11 +440,11 @@ class Postgres(ModuleCore):
 			print('--------------------')
 		except PostgressError as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 		except FileNotFoundError as e:
 			print('--------------------')
-			print('ERROR:',e, end='')
+			print('ERROR:',e)
 			print('--------------------')
 		finally:
 			common.restore_cdir()
