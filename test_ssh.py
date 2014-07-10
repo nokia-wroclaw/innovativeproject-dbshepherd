@@ -12,25 +12,34 @@ def setUpModule():
 	global master
 	global conn
 	print("SShTest")
+	master = "test"
 	try:
 		conn = connection.Connection()
 		conn.start()
 	except ConnectionRefusedError:
 		print("is ssh-shepherd running?")
-	
-	master = getpass("Master pass:")
-	
+
 def tearDownModule():
 	conn.stop()
 	
 	
-def connect_command_builder(connection, perm):
+def connect_command_builder(connection, perm): # KeyValue
+	try:
 		command = connection["adress"] + "_" + connection["user"]+ "_" + \
-					get_pass(connection["passwd"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+			get_pass(connection["keepass"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
 		return command
+	except (KeyError, KeePassError) as e:
+		try:
+			command = connection["adress"] + "_" + connection["user"]+ "_" + \
+				connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+			return command
+		except KeyError as e:
+			raise KeePassError("No KP or Passwd")
+	return command
+	
 		
 def get_pass(alias):
-		file = "keys.kdb"
+		file = "test.kdb"
 		if master == None:
 			raise KeePassError("Master Password Not Set")
 		try:
@@ -65,16 +74,7 @@ class SShTest(unittest.TestCase):
 
 	def test1_connection_to_ssh_shepherd(self):
 		self.assertIsNotNone(conn)
-	
-	def test2_invalid_yaml_connection(self):
-		conf = ConfigManager("config/lista_test.yaml")
-		connection =  conf.get("InvalidConnection")["connection"]
-		try:
-			cmd = connect_command_builder(connection,"no")
-		except KeyError:
-			cmd = None
-		self.assertIsNone(cmd)
-	
+		
 	def test8_invalid_ssh_port(self):
 		cmd =  create_command("InvalidSSHPort","no")
 		ans = send_command(cmd)

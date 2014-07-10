@@ -53,7 +53,10 @@ class YamlTest(unittest.TestCase):
 							test = connection["sshport"]
 						test = connection["remoteport"]
 						test = connection["user"]
-						test = connection["passwd"]
+						try:
+							test = connection["keepass"]
+						except KeyError as e:
+							test = connection["passwd"]
 					except KeyError as e:
 						self.fail(str(e) + " in " + server + "(" + file + ")")
 	

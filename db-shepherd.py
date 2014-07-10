@@ -1,18 +1,56 @@
-import cmd
-from sys import modules
-from configmanager import ConfigManager, ConfigManagerError
-from os.path import splitext
-from ssh_tunnelmanager import TunnelManager
 import os
+import cmd
 import common
-from mod_core import ParseArgsException, ModuleCore
+import configparser
+from os.path import splitext
+from sys import modules
 from kp import KeePassError, get_password 
+from ssh_tunnelmanager import TunnelManager
+from mod_core import ParseArgsException, ModuleCore
+from configmanager import ConfigManager, ConfigManagerError
 
 conn = common.conn
-manager = TunnelManager()
+keepass_path = common.keepass_path
+dump_path = common.dump_path
+config_path = common.config_path
 common.app_dir = os.getcwd()
 common.current_dir = os.getcwd()
 
+manager = TunnelManager()
+
+def init():
+	global keepass_path, dump_path, config_path
+		
+	config = configparser.ConfigParser()
+	try:
+		config.read_file(open('conf.cfg'))
+		try:
+			keepass_path = config.get('global', 'keepass_path')
+			dump_path = config.get('global', 'dump_path')
+			config_path = config.get('global', 'config_path')
+		except configparser.NoOptionError as e:
+			print (e)
+			exit(123)
+		except configparser.NoSectionError as e:
+			print (e)
+			exit(124)
+	except FileNotFoundError as e:
+		print (e)	
+		exit(125)
+		
+	if not os.path.isdir(dump_path):
+		print("Unable to find dump directory")
+	if not os.path.isdir(config_path):
+		print("Unable to find configuration directory")
+	if not os.path.exists(keepass_path):
+		print("Unable to find keepass file")
+
+def exit(int):
+	import sys
+	if conn != None:
+		conn.stop()
+	sys.exit(int)	
+	
 def send_command(command):
 	try:
 		conn.send(command)
@@ -43,10 +81,7 @@ class Shell(ModuleCore):
 		self.warn = False
 		self.master = None
 		self.do_logo()
-
-		# self.prompt_sign = "#>"
 		self.modules = []
-
 		self.do_cd('.')
 
 		try:
@@ -153,19 +188,14 @@ class Shell(ModuleCore):
 			completions = [f for f in self.modules if f.startswith(text)]
 		return completions
 
-	def nothing(self, file, srv, db, arg1, arg2):
-		print("nothing!!!", file, srv, db, arg1, arg2)
-
-	def do_nothing(self, arg):
-		self.exec_on_config(self.nothing, ['aaabbbccc', 'asdsdasdasd'], arg, 'list')
-
 	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
 	def get_password(self, alias):
-		file = "keys.kdb"
+		global keepass_path
+		print(keepass_path)
 		if self.master == None:
 			raise KeePassError("Master Password Not Set")
 		try:
-			return get_password(file, self.master, alias)
+			return get_password(keepass_path, self.master, alias)
 		except KeePassError as e:
 			raise e
 
@@ -173,12 +203,13 @@ class Shell(ModuleCore):
 		try:
 			command = connection["adress"] + "_" + connection["user"]+ "_" + \
 					self.get_password(connection["keepass"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
-		except (KeyError, KeePassError) as e:
+		except (KeyError, KeePassError) as e1:
 			try:
 				command = connection["adress"] + "_" + connection["user"]+ "_" + \
 					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
-			except KeyError as e:
-				raise KeePassError("No KP or Passwd")
+			except KeyError as e2:
+				raise KeePassError("Unable to use Keepass(" + e1.value + ") or Password")
+			raise KeePassError(e1)
 		return command
 
 	def connectList(self, listFile):
@@ -217,8 +248,6 @@ class Shell(ModuleCore):
 				print("Connecting to" , connection["adress"], "[", e, "]")
 			except Exception as e:
 					print (e)	
-				
-		print(connection_list)
 
 	def complete_connect(self, text, line, begidx, endidx):
 		if not text:
@@ -228,7 +257,6 @@ class Shell(ModuleCore):
 		return completions
 
 	def do_logo(self, args = ''):
-		import os
 		ts = os.get_terminal_size()
 		space = (ts.columns - 66) / 2
 
@@ -245,11 +273,12 @@ class Shell(ModuleCore):
 
 # if __name__ == '__main__':
 try:
+	init()
 	Shell().cmdloop()
 	if conn != None:
 		conn.stop()
+		
 except KeyboardInterrupt:
 	if conn != None:
 		conn.stop()
 	print("")
-	pass
