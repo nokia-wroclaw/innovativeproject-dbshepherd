@@ -8,6 +8,7 @@ from kp import KeePassError, get_password
 from configmanager import  ConfigManager, ConfigManagerError
 
 common.init()
+keepass_path = common.keepass_path
 
 class ParseArgsException(Exception):
 	def __init__(self, msg):
@@ -16,6 +17,7 @@ class ParseArgsException(Exception):
 class ModuleCore(cmd.Cmd):
 	def __init__(self, module = ''):
 		cmd.Cmd.__init__(self)
+		self.master = None
 
 		if module == '#':
 			self.prompt_sign = '#>'
@@ -224,7 +226,6 @@ class ModuleCore(cmd.Cmd):
 	
 	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
 	def get_password(self, alias):
-
 		if self.master == None:
 			raise KeePassError("Master Password Not Set")
 		try:
@@ -240,7 +241,11 @@ class ModuleCore(cmd.Cmd):
 			try:
 				command = connection["adress"] + "_" + connection["user"]+ "_" + \
 					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+				return command
 			except KeyError as e2:
-				raise KeePassError("Unable to use Keepass(" + e1.value + ") or Password")
+				if isinstance(e1,KeePassError):
+					raise KeePassError("Unable to use Keepass(" + e1.value + ") or Password")
+				else:
+					raise KeePassError("Invalid connection in yaml file")
 			raise KeePassError(e1)
 		return command

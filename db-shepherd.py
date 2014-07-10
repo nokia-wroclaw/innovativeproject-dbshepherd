@@ -79,7 +79,6 @@ class Shell(ModuleCore):
 	def __init__(self):
 		super().__init__(module='#')
 		self.warn = False
-		self.master = None
 		self.do_logo()
 		self.modules = []
 		self.do_cd('.')

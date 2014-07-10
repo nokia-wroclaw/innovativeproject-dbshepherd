@@ -9,6 +9,7 @@ import datetime
 from subprocess import Popen, PIPE
 import re
 import tarfile
+from kp import KeePassError
 
 class Postgres(ModuleCore):
 	def __init__(self):
@@ -101,12 +102,13 @@ class Postgres(ModuleCore):
 			print('--------------------')
 
 	def exe_query(self, file_name, serv_name, base_name, db_query):
-		cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
+		conf = ConfigManager("config/" + file_name + ".yaml")
+		cnf = conf.get(serv_name)
 		conn = cnf["connection"]
 		database = cnf["databases"][base_name]
 
 		if conn["type"] == "ssh":
-			cmd = conn["adress"] + "_" + conn["user"] + "_" + conn["passwd"] + "_" + str(conn["sshport"]) + "_" + str(conn["remoteport"]) + "_no"
+			cmd = self.connect_command_builder(conn, 'no')
 			common.conn.send(cmd)
 			ans = None
 			while ans == None:
@@ -116,14 +118,14 @@ class Postgres(ModuleCore):
 			adr = "localhost"
 
 			if status == "ok":  #udało się utworzyć tunel
-				self.psycop_query(database["name"], database["user"], database["passwd"], adr, db_port, db_query)
+				self.psycop_query(database["name"], database["user"], conf.get_password(serv_name + '.' + base_name), adr, db_port, db_query)
 			else:
 				print('--------------------')
 				print('Error: Unable to create ssh tunnel')
 				print('--------------------')
 
 		elif conn["type"] == "direct":
-			self.psycop_query(database["name"], database["user"], database["passwd"], conn["adress"], conn["remoteport"], db_query)
+			self.psycop_query(database["name"], database["user"], conf.get_password(serv_name + '.' + base_name), conn["adress"], conn["remoteport"], db_query)
 
 	def do_query(self, args):
 		try:
@@ -139,10 +141,16 @@ class Postgres(ModuleCore):
 			print('ERROR:',e)
 			print('--------------------')
 		except ParseArgsException as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e)
+			print('--------------------')
 		except KeyError as e:
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
+			print('--------------------')
+		except KeePassError as e:
+			print('--------------------')
+			print('ERROR:', e)
 			print('--------------------')
 
 	# ------------------------------------------------------------------------------------------------------------------
@@ -153,18 +161,19 @@ class Postgres(ModuleCore):
 		dumper = """pg_dump.exe -U %s -d %s -h %s -p %s -f %s -C --column-inserts"""
 
 		try:
-			cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
+			conf = ConfigManager("config/" + file_name + ".yaml")
+			cnf = conf.get(serv_name)
 			conn = cnf["connection"]
 			db = cnf["databases"][base_name]
 
 			db_name = db["name"]
 			db_user = db["user"]
-			db_pass = db["passwd"]
+			db_pass = conf.get_password(serv_name + '.' + base_name)
 			conn_adr = ''
 			conn_port = None
 
 			if conn["type"] == "ssh": #Dla połączeń ssh
-				cmd = conn["adress"] + "_" + conn["user"] + "_" + conn["passwd"] + "_" + str(conn["sshport"]) + "_" + str(conn["remoteport"]) + "_no"
+				cmd = self.connect_command_builder(conn, 'no')
 				common.conn.send(cmd)
 				ans = None
 				while ans == None:
@@ -228,7 +237,9 @@ class Postgres(ModuleCore):
 			print('ERROR:',e, end='')
 			print('--------------------')
 		except Exception as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 
 	def do_dump(self, args):
 		try:
@@ -244,7 +255,9 @@ class Postgres(ModuleCore):
 			print('ERROR:',e)
 			print('--------------------')
 		except ParseArgsException as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 		except KeyError as e:
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
@@ -266,10 +279,16 @@ class Postgres(ModuleCore):
 			print('ERROR:',e)
 			print('--------------------')
 		except ParseArgsException as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 		except KeyError as e:
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
+			print('--------------------')
+		except KeePassError as e:
+			print('--------------------')
+			print('ERROR:', e)
 			print('--------------------')
 		finally:
 			common.restore_cdir()
@@ -317,18 +336,19 @@ class Postgres(ModuleCore):
 	def exe_restore(self, file_name, serv_name, base_name, backup_name, type):
 
 		try:
-			cnf = ConfigManager("config/" + file_name + ".yaml").get(serv_name)
+			conf = ConfigManager("config/" + file_name + ".yaml")
+			cnf = conf.get(serv_name)
 			conn = cnf["connection"]
 			db = cnf["databases"][base_name]
 
 			db_name = db["name"]
 			db_user = db["user"]
-			db_pass = db["passwd"]
+			db_pass = conf.get_password(serv_name + '.' + base_name)
 			conn_adr = ''
 			conn_port = None
 
 			if conn["type"] == "ssh": #Dla połączeń ssh
-				cmd = conn["adress"] + "_" + conn["user"] + "_" + conn["passwd"] + "_" + str(conn["sshport"]) + "_" + str(conn["remoteport"]) + "_no"
+				cmd = self.connect_command_builder(conn, 'no')
 				common.conn.send(cmd)
 				ans = None
 				while ans == None:
@@ -374,7 +394,9 @@ class Postgres(ModuleCore):
 			print('ERROR:',e, end='')
 			print('--------------------')
 		except Exception as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 
 	def do_restore(self, args):
 		try:
@@ -404,15 +426,21 @@ class Postgres(ModuleCore):
 			print('ERROR:',e)
 			print('--------------------')
 		except ParseArgsException as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 		except KeyError as e:
 			print('--------------------')
 			print('ERROR: Unable to find key:',e)
 			print('--------------------')
 		except PostgressError as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 		except FileNotFoundError as e:
-			print(e)
+			print('--------------------')
+			print('ERROR:',e, end='')
+			print('--------------------')
 		finally:
 			common.restore_cdir()
 

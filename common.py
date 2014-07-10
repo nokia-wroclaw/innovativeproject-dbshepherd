@@ -9,6 +9,7 @@ current_dir = '.'
 app_dir = '.'
 
 def init():
+	global conn
 	app_dir = os.getcwd()
 	current_dir = app_dir
 	if conn == None:
