@@ -180,8 +180,12 @@ class ModuleCore(cmd.Cmd):
 						self.directories.append(name)
 			except FileNotFoundError as e:
 				print(e)
-			finally:
-				pass
+
+	def do_ls(self, args):
+		"List directory"
+		for name in os.listdir(common.get_cdir()):
+			print(name)
+
 
 	def do_pwd(self, args):
 		"Print path"
