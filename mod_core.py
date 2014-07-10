@@ -7,32 +7,42 @@ import os
 import re
 import common
 
+common.init()
+
 class ParseArgsException(Exception):
 	def __init__(self, msg):
 		self.msg = msg
 
 class ModuleCore(cmd.Cmd):
-	#Prompt with path
-	new_prompt = ''
+	def __init__(self, module = ''):
+		cmd.Cmd.__init__(self)
 
-	#defaults
-	ruler = '-'
+		if module == '#':
+			self.prompt_sign = '#>'
+		elif module != '':
+			self.prompt_sign = '[' + module + ']>'
+		else:
+			self.prompt_sign = '->'
 
-	#Completions
-	directories = []
-	file_server_database = []
-	file_server = []
+		self.do_cd('.')
 
-	configs = ConfigManager().get_config_list()
-	for conf in configs:
-		file_server_database.append(conf)
-		file_server.append(conf)
-		for srv in ConfigManager('config/' + conf + '.yaml').get_all():
-			file_server_database.append(conf + '.' + srv)
-			file_server.append(conf + '.' + srv)
-			for db in ConfigManager('config/' + conf + '.yaml').get(srv)['databases']:
-				file_server_database.append(conf + '.' + srv + '.' + db)
+		#defaults
+		self.ruler = '-'
 
+		#Completions
+		self.directories = []
+		self.file_server_database = []
+		self.file_server = []
+
+		configs = ConfigManager().get_config_list()
+		for conf in configs:
+			self.file_server_database.append(conf)
+			self.file_server.append(conf)
+			for srv in ConfigManager('config/' + conf + '.yaml').get_all():
+				self.file_server_database.append(conf + '.' + srv)
+				self.file_server.append(conf + '.' + srv)
+				for db in ConfigManager('config/' + conf + '.yaml').get(srv)['databases']:
+					self.file_server_database.append(conf + '.' + srv + '.' + db)
 
 	def precmd(self, line):
 		if not sys.stdin.isatty():
@@ -43,9 +53,6 @@ class ModuleCore(cmd.Cmd):
 		if not sys.stdin.isatty():
 			print("")
 		return stop
-		
-	def set_name(self, name):
-		self.new_prompt = "[" + name + "]>"
 
 	def parse_args(self, string="", n=0, m=0):
 		list = re.findall('"+.*"+|[a-zA-Z0-9!@#$%^&*()_+-,./<>?]+', string)
@@ -157,27 +164,20 @@ class ModuleCore(cmd.Cmd):
 		return completions
 
 	def do_cd(self, args):
-		c_dir = os.getcwd()
 		try:
-			os.chdir(common.get_cdir())
-			os.chdir(args)
-			common.current_dir = os.getcwd()
-
-
-
-			self.prompt = self.get_shortpath() + ' ' + self.new_prompt
+			common.chdir(args)
+			self.prompt = self.get_shortpath() + ' ' + self.prompt_sign
 
 			self.directories = []
 			for name in os.listdir(common.get_cdir()):
 				if os.path.isdir(os.path.join(common.get_cdir(), name)):
 					self.directories.append(name)
-
-			os.chdir(c_dir)
 		except FileNotFoundError as e:
-			os.chdir(c_dir)
 			print(e)
+		finally:
+			pass
 
-	def do_path(self, args):
+	def do_pwd(self, args):
 		print(common.get_cdir())
 
 	def do_warn(self, args):
@@ -209,7 +209,6 @@ class ModuleCore(cmd.Cmd):
 		else:
 			p = sys.stdin.readline().rstrip()
 		self.master = p
-
 		
 	def do_exit(self, *args):
 		return True

@@ -11,11 +11,11 @@ import re
 import tarfile
 
 class Postgres(ModuleCore):
-	def __init__(self, completekey='tab', stdin=None, stdout=None):
-		super().__init__()
-		self.set_name('Postgres')
+	def __init__(self):
+		super().__init__(module='Postgres')
+		# self.set_name('Postgres')
 		self.warn = False
-		self.do_cd('.')
+		# self.do_cd('.')
 
 	def get_local_version(self, cmd):
 		proc = Popen(cmd , stdout=PIPE, stderr=PIPE, shell=True)
@@ -58,7 +58,6 @@ class Postgres(ModuleCore):
 				return False
 		else:
 			return False
-
 
 	def do_pg_versions(self, arg):
 		out = self.get_local_version('psql --version')
@@ -408,6 +407,8 @@ class Postgres(ModuleCore):
 			print('ERROR: Unable to find key:',e)
 			print('--------------------')
 		except PostgressError as e:
+			print(e)
+		except FileNotFoundError as e:
 			print(e)
 
 	def complete_query(self, text, line, begidx, endidx):

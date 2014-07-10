@@ -10,6 +10,8 @@ from kp import KeePassError, get_password
 
 conn = common.conn
 manager = TunnelManager()
+common.app_dir = os.getcwd()
+common.current_dir = os.getcwd()
 
 def send_command(command):
 	try:
@@ -37,15 +39,14 @@ def set_module(module, warn):
 		
 class Shell(ModuleCore):
 	def __init__(self):
-		super().__init__()
+		super().__init__(module='#')
 		self.warn = False
 		self.master = None
 		self.do_logo()
 
-		self.new_prompt = "#>"
+		# self.prompt_sign = "#>"
 		self.modules = []
 
-		common.current_dir = os.getcwd()
 		self.do_cd('.')
 
 		try:
