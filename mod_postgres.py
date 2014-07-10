@@ -1,15 +1,15 @@
-from prettytable import from_db_cursor
-from mod_core import ModuleCore, ParseArgsException
-import common
-from configmanager import ConfigManager, ConfigManagerError
-import psycopg2
 import os
+import re
+import common
+import tarfile
+import psycopg2
 import paramiko
 import datetime
-from subprocess import Popen, PIPE
-import re
-import tarfile
 from kp import KeePassError
+from subprocess import Popen, PIPE
+from prettytable import from_db_cursor
+from mod_core import ModuleCore, ParseArgsException
+from configmanager import ConfigManager, ConfigManagerError
 
 class Postgres(ModuleCore):
 	def __init__(self):
@@ -61,6 +61,7 @@ class Postgres(ModuleCore):
 			return False
 
 	def do_pg_versions(self, arg):
+		"Print versions of your postgres tools"
 		out = self.get_local_version('psql --version')
 		if out != None:
 			print('Local psql version:', out[0]+'.'+out[1]+'.'+out[2])
@@ -128,6 +129,7 @@ class Postgres(ModuleCore):
 			self.psycop_query(database["name"], database["user"], conf.get_password(serv_name + '.' + base_name), conn["adress"], conn["remoteport"], db_query)
 
 	def do_query(self, args):
+		"Do query to database\n\tUsage:\tquery 'query'\t\t (query using all server lists)\n\t\tquery list 'query'\t (query using server list)\n\t\tquery list.base 'query'\t (query using database in list)"
 		try:
 			(values, num) = self.parse_args(args, 1, 2)
 
@@ -242,6 +244,7 @@ class Postgres(ModuleCore):
 			print('--------------------')
 
 	def do_dump(self, args):
+		"Dump database and save with name\n\tUsage:\tdump name \t\t(dump using all server lists)\n\t\tdump list name \t\t(dump using server list)\n\t\tdump list.base name \t(dump using database in list)"
 		try:
 			(values, num) = self.parse_args(args, 1, 2)
 
@@ -266,6 +269,7 @@ class Postgres(ModuleCore):
 			common.restore_cdir()
 
 	def do_dump_tar(self, args):
+		"Dump database and save with name as tar file\n\tUsage:\tdump name \t\t(dump using all server lists)\n\t\tdump list name \t\t(dump using server list)\n\t\tdump list.base name \t(dump using database in list)"
 		try:
 			(values, num) = self.parse_args(args, 1, 2)
 
@@ -399,6 +403,7 @@ class Postgres(ModuleCore):
 			print('--------------------')
 
 	def do_restore(self, args):
+		"Restore database from file\n\tUsage:\trestore file \t\t(restore to all server lists)\n\t\trestore list file \t\t(restore to server list)\n\t\trestore list.base file \t(restore to database in list)"
 		try:
 			(values, num) = self.parse_args(args, 1, 2)
 

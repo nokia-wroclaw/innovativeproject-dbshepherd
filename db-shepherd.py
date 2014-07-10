@@ -232,6 +232,7 @@ class Shell(ModuleCore):
 		return completions
 
 	def do_logo(self, args = ''):
+		"Print db-shepherd logo"
 		ts = os.get_terminal_size()
 		space = (ts.columns - 66) / 2
 

@@ -166,6 +166,7 @@ class ModuleCore(cmd.Cmd):
 		return completions
 
 	def do_cd(self, args):
+		"Move to directory"
 		if args == '':
 			print(common.get_cdir())
 		else:
@@ -183,6 +184,7 @@ class ModuleCore(cmd.Cmd):
 				pass
 
 	def do_pwd(self, args):
+		"Print path"
 		print(common.get_cdir())
 
 	def do_warn(self, args):
