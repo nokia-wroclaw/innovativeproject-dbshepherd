@@ -1,6 +1,9 @@
-import yaml
 import os
-#najpierw & później * !!
+import kp
+import yaml
+import common
+
+keepass_path = common.keepass_path
 
 class ConfigManager:
 	def __init__(self, path = ''):
@@ -36,6 +39,31 @@ class ConfigManager:
 				files.append(file.split(".")[0])
 		return files
 
+	def get_password(self, alias, master=None):
+		splitted_alias = alias.split(".")
+		
+		if len(splitted_alias) < 1:
+			return None
+		elif len(splitted_alias) == 1:
+			list = self.loader[splitted_alias[0]]["connection"]
+			
+		else:
+			list = self.loader[splitted_alias[0]]["databases"][splitted_alias[1]]
+			
+		if master != None:
+			try:
+				return kp.get_password(keepass_path, master, list["keepass"])
+			except (KeyError, kp.KeePassError) as e1:
+				try:
+					return  list["passwd"]
+				except KeyError:
+					raise ConfigManagerError("Unable to get Password from Keepass or Passwd(" + e1 + ")")
+		else:
+			try:
+				return  list["passwd"]
+			except KeyError:
+				raise ConfigManagerError("Unable to get Password (MasterPasswordNot set or no Passwd field)")	
+		
 class ConfigManagerError(Exception):
 	def __init__(self, value):
 		self.value = value

@@ -2,9 +2,9 @@ import os
 import cmd
 import common
 import configparser
-from os.path import splitext
 from sys import modules
-from kp import KeePassError, get_password 
+from os.path import splitext
+from kp import KeePassError
 from ssh_tunnelmanager import TunnelManager
 from mod_core import ParseArgsException, ModuleCore
 from configmanager import ConfigManager, ConfigManagerError
@@ -187,30 +187,6 @@ class Shell(ModuleCore):
 		else:
 			completions = [f for f in self.modules if f.startswith(text)]
 		return completions
-
-	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
-	def get_password(self, alias):
-		global keepass_path
-		print(keepass_path)
-		if self.master == None:
-			raise KeePassError("Master Password Not Set")
-		try:
-			return get_password(keepass_path, self.master, alias)
-		except KeePassError as e:
-			raise e
-
-	def connect_command_builder(self,connection, perm): # KeyValue
-		try:
-			command = connection["adress"] + "_" + connection["user"]+ "_" + \
-					self.get_password(connection["keepass"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
-		except (KeyError, KeePassError) as e1:
-			try:
-				command = connection["adress"] + "_" + connection["user"]+ "_" + \
-					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
-			except KeyError as e2:
-				raise KeePassError("Unable to use Keepass(" + e1.value + ") or Password")
-			raise KeePassError(e1)
-		return command
 
 	def connectList(self, listFile):
 		try:

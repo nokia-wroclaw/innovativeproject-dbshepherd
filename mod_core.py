@@ -1,11 +1,11 @@
-import cmd
 import re
-import sys
-from configmanager import  ConfigManager, ConfigManagerError
-from getpass import getpass
 import os
-import re
+import cmd
+import sys
 import common
+from getpass import getpass
+from kp import KeePassError, get_password 
+from configmanager import  ConfigManager, ConfigManagerError
 
 common.init()
 
@@ -221,3 +221,26 @@ class ModuleCore(cmd.Cmd):
 
 	def emptyline(self):
 		return False
+	
+	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
+	def get_password(self, alias):
+
+		if self.master == None:
+			raise KeePassError("Master Password Not Set")
+		try:
+			return get_password(keepass_path, self.master, alias)
+		except KeePassError as e:
+			raise e
+
+	def connect_command_builder(self,connection, perm):
+		try:
+			command = connection["adress"] + "_" + connection["user"]+ "_" + \
+					self.get_password(connection["keepass"]) + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+		except (KeyError, KeePassError) as e1:
+			try:
+				command = connection["adress"] + "_" + connection["user"]+ "_" + \
+					connection["passwd"] + "_" + str(connection["sshport"])  + "_" + str(connection["remoteport"]) + "_" + perm
+			except KeyError as e2:
+				raise KeePassError("Unable to use Keepass(" + e1.value + ") or Password")
+			raise KeePassError(e1)
+		return command

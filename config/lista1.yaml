@@ -13,6 +13,7 @@
     user: dbshepherd
     passwd: dbshepherd
    pgBasex:
+    keepass: test
     name: dbshepherd_local
     user: dbshepherd
     passwd: dbshepherd

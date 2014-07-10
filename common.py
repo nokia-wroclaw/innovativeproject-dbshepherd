@@ -11,6 +11,12 @@ app_dir = '.'
 def init():
 	app_dir = os.getcwd()
 	current_dir = app_dir
+	if conn == None:
+		try:
+			conn = connection.Connection()
+			conn.start()
+		except ConnectionRefusedError:
+			print("Unable to connect to ssh-shepherd. Db-shepherd might not work properly.")
 
 def get_cdir():
 	return current_dir
@@ -32,8 +38,3 @@ def restore_cdir():
 	global app_dir
 	os.chdir(app_dir)
 
-try:
-    conn = connection.Connection()
-    conn.start()
-except ConnectionRefusedError:
-    print("Unable to connect to ssh-shepherd. Db-shepherd might not work properly.")
