@@ -8,7 +8,7 @@ from kp import KeePassError, get_password
 from configmanager import  ConfigManager, ConfigManagerError
 
 common.init()
-keepass_path = common.keepass_path
+
 
 class ParseArgsException(Exception):
 	def __init__(self, msg):
@@ -232,6 +232,7 @@ class ModuleCore(cmd.Cmd):
 	
 	# Musimy wyłapać wszystko co możliwe, nie ma pliku, zly master itp. i zwrocic 1 wyjątek
 	def get_password(self, alias):
+		keepass_path = common.keepass_path
 		if self.master == None:
 			raise KeePassError("Master Password Not Set")
 		try:

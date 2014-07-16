@@ -18,6 +18,8 @@ elif sys.platform == 'win32':
 	os.system(run)
 	run = "pyreadline-" + bit_suffix + ".exe"
 	os.system(run)
+	run = "pywin32-" + bit_suffix + ".exe"
+	os.system(run)
 	#ez_install
 	os.system("python setup.py install")
 else:

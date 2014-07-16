@@ -6,7 +6,7 @@
    remoteport: 5432
    user: dbshepherd
    keepass: nsn
-   passwd: dbshepherd
+
   databases:
    pgBase_test:
     name: dbshepherd_local
@@ -16,6 +16,7 @@
     keepass: test
     name: dbshepherd_local
     user: dbshepherd
+    keepass: nsn
     passwd: dbshepherd
  nsn_local:
   connection:

@@ -10,12 +10,11 @@ from mod_core import ParseArgsException, ModuleCore
 from configmanager import ConfigManager, ConfigManagerError
 
 conn = common.conn
-keepass_path = common.keepass_path
-dump_path = common.dump_path
-config_path = common.config_path
+
 common.app_dir = os.getcwd()
 common.current_dir = os.getcwd()
-
+dump_path = common.dump_path
+config_path = common.config_path
 manager = TunnelManager()
 
 def init():
@@ -44,7 +43,9 @@ def init():
 		print("Unable to find configuration directory")
 	if not os.path.exists(keepass_path):
 		print("Unable to find keepass file")
-
+	
+	common.keepass_path = keepass_path
+	
 def exit(int):
 	import sys
 	if conn != None:
