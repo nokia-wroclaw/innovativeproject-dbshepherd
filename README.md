@@ -7,7 +7,7 @@ PostgreSQL Shepherd - Innovative Project
 | Scope definition | Functionalities: copying database or schema between instances, copying roles, executing queries in parallel |   
 | Requirements     | Python      |   
 | Idea author      | Wojciech Stachowski     |   
-| Authors      | Sebastian Zientek and Jakub Szymczak     |   
+| Authors      | Sebastian Zientek and Jakub Szymczak      |   
 
 Instalation
 --
