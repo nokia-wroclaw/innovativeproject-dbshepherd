@@ -254,7 +254,8 @@ try:
 	Shell().cmdloop()
 	if conn != None:
 		conn.stop()
-		
+
+
 except KeyboardInterrupt:
 	if conn != None:
 		conn.stop()
