@@ -67,7 +67,7 @@ def set_module(module, warn):
 		if len(module) > 0:
 			module_src = splitext(ConfigManager("modules.yaml").get(module)['source'])[0]
 			__import__(module_src)
-			exec("mod = modules['{0}'].{1}()\nmod.warn={2}\nmod.cmdloop()".format(module_src,module, warn))
+			modules[module_src].init(warn)
 		else:
 			print("Musisz podać nazwę modułu!")
 	except ImportError as e:

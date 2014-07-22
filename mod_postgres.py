@@ -480,3 +480,8 @@ class Postgres(ModuleCore):
 class PostgressError(Exception):
 	def __init__(self, value):
 		self.value = value
+
+def init(warn):
+	postgres = Postgres()
+	postgres.warn = warn
+	postgres.cmdloop()
