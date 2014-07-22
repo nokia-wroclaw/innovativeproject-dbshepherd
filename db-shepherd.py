@@ -69,7 +69,7 @@ def set_module(module, warn):
 			__import__(module_src)
 			modules[module_src].init(warn)
 		else:
-			print("Musisz podać nazwę modułu!")
+			print("You must specify the name of the module!")
 	except ImportError as e:
 		print(e)
 	except ConfigManagerError as e:

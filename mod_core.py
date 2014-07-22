@@ -65,18 +65,21 @@ class ModuleCore(cmd.Cmd):
 				r_list.append(l.replace('"', ''))
 			return (r_list, len(list))
 		else:
-			raise ParseArgsException("Nieodpowiednia ilość argumentów")
+			raise ParseArgsException("Incorrect number of arguments")
 
-	def exec_on_config(self, fun, args, values, view = ''): # link - file.server.base
+	# wykonuje daną funkcję (callback) na wszystkich bazach
+	def exec_on_config(self, callback, args, values, view = ''): # link - file.server.base
 		if values == '': # wykonaj na wszystkich plikach
 			files = ConfigManager().get_config_list() # pobierz listę plików konfiguracyjnych
 
+			# wyświetl na czym będziesz wykonywać
 			print("Exec on:")
 			for file in files:
 				print('+-',file)
 
 			ans = input("Are you sure? [NO/yes/info]: ")
-			if ans == "yes":
+
+			if ans == "yes": #wykonaj callback
 				for file in files:
 					if view == 'tree': print('+-', file)
 					try:
@@ -87,10 +90,11 @@ class ModuleCore(cmd.Cmd):
 							for db in databases:
 								if view == 'tree': print("|  |  +-", db)
 								if view == 'list': print('[', file, '->', srv, '->', db, ']')
-								fun(file, srv, db, *args)
+								callback(file, srv, db, *args)
 					except ConfigManagerError as e:
 						print(e)
-			elif ans == "info":
+
+			elif ans == "info": #podaj tylko informację na czym callback zostałby wykonany
 				for file in files:
 					print('+-', file)
 					servers = ConfigManager("config/" + file + ".yaml").get_all()
@@ -99,13 +103,16 @@ class ModuleCore(cmd.Cmd):
 						databases = servers[srv]["databases"]
 						for db in databases:
 							print('|  |  +-', db)
-			else:
+
+			else: #jeżeli nie zdecydujemy się na wykonanie czegokolwiek
 				print("aborted")
 
-		else:
-			val = values.split('.')
+		else: # jeżeli specjalizujemy na czym chcemy wykonać
+
+			val = values.split('.') #rozdzielamy nazwę_pliku.serwera.bazy
 			params = len(val)
-			if params == 1:
+
+			if params == 1: # jeżeli podano nazwę tylko pliku to wykonaj na wszystkich serwerach, bazach które są w nim zapisane
 				file = val[0]
 				try:
 					servers = ConfigManager("config/" + file + ".yaml").get_all()
@@ -115,13 +122,13 @@ class ModuleCore(cmd.Cmd):
 						for db in databases:
 							if view == 'tree': print("|  +-", db)
 							if view == 'list': print('[', srv, '->', db, ']')
-							fun(file, srv, db, *args)
+							callback(file, srv, db, *args)
 				except ConfigManagerError as e:
 					print(e)
 				except KeyError as e:
 					print(e, "is not exist")
 
-			elif params == 2:
+			elif params == 2: # jeżeli podano nazwę pliku i serwer to wykonaj na wszystkich bazach na serwerze
 				file = val[0]
 				try:
 					servers = ConfigManager("config/" + file + ".yaml").get_all()
@@ -130,20 +137,21 @@ class ModuleCore(cmd.Cmd):
 					for db in databases:
 						if view == 'tree': print("+-", db)
 						if view == 'list': print('[', db, ']')
-						fun(file, srv, db, *args)
+						callback(file, srv, db, *args)
 				except ConfigManagerError as e:
 					print(e)
 				except KeyError as e:
 					print(e, "is not exist")
 
-			elif params == 3:
+			elif params == 3: # podano nazwę pliku, serwer i nazwę bazy - wykonaj polecenie dokładnie na niej
 				try:
-					fun(val[0], val[1], val[2], *args)
+					callback(val[0], val[1], val[2], *args)
 				except ConfigManagerError as e:
 					print(e)
 				except KeyError as e:
 					print(e, "is not exist")
 
+	# zwraca skróconą ścieżkę do aktualnego katalogu - funkcja pomocnicza
 	def get_shortpath(self):
 		path = common.get_cdir()
 		separator = ''
@@ -158,6 +166,7 @@ class ModuleCore(cmd.Cmd):
 		else:
 			return (path)
 
+	# autouzupełnienia dla cmd polecenia cd
 	def complete_cd(self, text, line, begidx, endidx):
 		if not text:
 			completions = self.directories[:]
@@ -165,6 +174,7 @@ class ModuleCore(cmd.Cmd):
 			completions = [f for f in self.directories if f.startswith(text)]
 		return completions
 
+	# polecenie cd - pozwala na przemieszczanie się po katalogach
 	def do_cd(self, args):
 		"Move to directory"
 		if args == '':
@@ -181,16 +191,18 @@ class ModuleCore(cmd.Cmd):
 			except FileNotFoundError as e:
 				print(e)
 
+	# wyświetla wszystkie pliki w lokalizacji
 	def do_ls(self, args):
 		"List directory"
 		for name in os.listdir(common.get_cdir()):
 			print(name)
 
-
+	# podaje pełną ścieżkę aktualnego katalogu
 	def do_pwd(self, args):
 		"Print path"
 		print(common.get_cdir())
 
+	# pozwala na decyzję czy chcemy wyświetlać warningi
 	def do_warn(self, args):
 		"""warn <on/off>"""
 		try:
@@ -212,7 +224,8 @@ class ModuleCore(cmd.Cmd):
 
 		except ParseArgsException as e:
 			print(e)
-	
+
+	# ustawia masterpassword dla keepasa
 	def do_setMaster(self,args):
 		"Set master password"
 		if sys.stdin.isatty(): # jezeli jako shell
